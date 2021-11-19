@@ -1,5 +1,6 @@
 ﻿using System;
-namespace Database_Coursework
+
+namespace generation
 {
     class Program
     {
@@ -7,5 +8,9 @@ namespace Database_Coursework
         {
             Console.WriteLine("Hello World!");
         }
+    }
+    public class Generation
+    {
+        
     }
 }

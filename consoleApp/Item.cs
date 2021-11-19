@@ -1,4 +1,4 @@
-namespace Database_Coursework
+namespace consoleApp
 {
     public class Item
     {

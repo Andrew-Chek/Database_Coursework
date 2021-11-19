@@ -2,7 +2,7 @@ using System;
 using Npgsql;
 using System.Collections.Generic;
 
-namespace Database_Coursework
+namespace consoleApp
 {
     public class ItemRepository
     {
