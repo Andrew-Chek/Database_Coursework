@@ -1,5 +1,6 @@
 ﻿using System;
 using static System.Console;
+using System.Collections.Generic;
 namespace consoleApp
 {
     class Program
@@ -7,30 +8,38 @@ namespace consoleApp
         static void Main(string[] args)
         {
             string connString = "Host=localhost;Port=5432;Database=courseWorkdb;Username=postgres;Password=2003Lipovetc";
-            Category_Brend_Repo repo = new Category_Brend_Repo(connString);
+            CategoryRepository repo = new CategoryRepository(connString);
             WriteLine("Hello from console");
         }
     }
-    public class Validation
+    public static class Validation
     {
-        private ItemRepository items;
-        private ModRepository mods;
-        private Category_Brend_Repo cts_brs;
-
-        public Validation(ItemRepository items, ModRepository mods, Category_Brend_Repo cts_brs)
+        static string connString = "Host=localhost;Port=5432;Database=courseWorkdb;Username=postgres;Password=2003Lipovetc";
+        static CategoryRepository cts_brs;
+        static ItemRepository items;
+        static ModRepository mods;
+        static Validation()
         {
-            this.items = items;
-            this.mods = mods;
-            this.cts_brs = cts_brs;
+            cts_brs = new CategoryRepository(connString);
+            items = new ItemRepository(connString);
+            mods = new ModRepository(connString);
         }
-        public int GetInt()
+        public static bool CheckInteger(string value)
+        {
+            return int.TryParse(value, out int num);
+        }
+        public static bool CheckDouble(string value)
+        {
+            return double.TryParse(value, out double num);
+        }
+        public static int GetInt()
         {
             int num;
-            while(true)
+            while (true)
             {
                 WriteLine("Enter a num: ");
                 string value = ReadLine();
-                if(int.TryParse(value, out num))
+                if (int.TryParse(value, out num))
                 {
                     num = int.Parse(value);
                     break;
@@ -42,10 +51,9 @@ namespace consoleApp
             }
             return num;
         }
-        
-    }
-    public class Generation
-    {
-
+        public static bool CheckUnique(long num)
+        {
+            return num == 0;
+        }
     }
 }

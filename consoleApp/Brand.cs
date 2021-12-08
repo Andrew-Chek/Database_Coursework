@@ -4,9 +4,9 @@ namespace consoleApp
     {
         public string brand;
         public int brand_id;
-        public Brand(string brend)
+        public Brand(string brand)
         {
-            this.brand = brend;
+            this.brand = brand;
         }
         public Brand()
         {

@@ -3,14 +3,14 @@ using Npgsql;
 using System.Collections.Generic;
 namespace consoleApp
 {
-    public class Category_Brend_Repo
+    public class CategoryRepository
     {
         private NpgsqlConnection connection;
-        public Category_Brend_Repo(string connString)
+        public CategoryRepository(string connString)
         {
             this.connection = new NpgsqlConnection(connString);
         }
-        public Category GetCTById(int id)
+        public Category GetById(int id)
         {
             connection.Open();
             NpgsqlCommand command = connection.CreateCommand();
@@ -31,28 +31,28 @@ namespace consoleApp
                 throw new Exception("there are no categories with such id");
             }
         }
-        public Brand GetBRById(int id)
+        public Category GetByName(string name)
         {
             connection.Open();
             NpgsqlCommand command = connection.CreateCommand();
-            command.CommandText = "SELECT * FROM brands WHERE brand_id = @id";
-            command.Parameters.AddWithValue("id", id);
+            command.CommandText = "SELECT * FROM categories WHERE category = @name";
+            command.Parameters.AddWithValue("name", name);
             NpgsqlDataReader reader = command.ExecuteReader();
             if(reader.Read())
             {
-                Brand brand = new Brand();
-                brand.brand_id = reader.GetInt32(0);
-                brand.brand = reader.GetString(1);
+                Category category = new Category();
+                category.category_id = reader.GetInt32(0);
+                category.category = reader.GetString(1);
                 connection.Close();
-                return brand;
+                return category;
             }
             else 
             {
                 connection.Close();
-                throw new Exception("there are no brands with such id");
+                throw new Exception("there are no categories with such name");
             }
         }
-        public int DeleteCTById(int id)
+        public int DeleteById(int id)
         {
             connection.Open();
             NpgsqlCommand command = connection.CreateCommand();
@@ -62,17 +62,7 @@ namespace consoleApp
             connection.Close();
             return nChanged;
         }
-        public int DeleteBRById(int id)
-        {
-            connection.Open();
-            NpgsqlCommand command = connection.CreateCommand();
-            command.CommandText = "DELETE FROM brands WHERE brand_id = @id";
-            command.Parameters.AddWithValue("id", id);
-            int nChanged = command.ExecuteNonQuery();
-            connection.Close();
-            return nChanged;
-        }
-        public object InsertCR(Category category)
+        public object Insert(Category value)
         {
             connection.Open();
             NpgsqlCommand command = connection.CreateCommand();
@@ -81,48 +71,23 @@ namespace consoleApp
                 INSERT INTO categories (category) 
                 VALUES (@ct_name) RETURNING category_id;
             ";
-            command.Parameters.AddWithValue("ct_name", category.category);
+            command.Parameters.AddWithValue("ct_name", value.category);
             object newId = (object)command.ExecuteScalar();
             connection.Close();
             return newId;
         }
-        public object InsertBR(Brand brand)
-        {
-            connection.Open();
-            NpgsqlCommand command = connection.CreateCommand();
-            command.CommandText = 
-            @"
-                INSERT INTO brands (brand) 
-                VALUES (@br_name) RETURNING brand_id;
-            ";
-            command.Parameters.AddWithValue("br_name", brand.brand);
-            object newId = (object)command.ExecuteScalar();
-            connection.Close();
-            return newId;
-        }
-        public bool UpdateCT(Category category)
+        public bool Update(Category value)
         {
             connection.Open();
             NpgsqlCommand command = connection.CreateCommand();
             command.CommandText = @"UPDATE categories SET category = @ct_name WHERE category_id = @ct_id;";
-            command.Parameters.AddWithValue("ct_id", category.category_id);
-            command.Parameters.AddWithValue("ct_name", category.category);
+            command.Parameters.AddWithValue("ct_id", value.category_id);
+            command.Parameters.AddWithValue("ct_name", value.category);
             int nChanged = command.ExecuteNonQuery();
             connection.Close();
             return nChanged == 1;
         }
-        public bool UpdateBR(Brand brand)
-        {
-            connection.Open();
-            NpgsqlCommand command = connection.CreateCommand();
-            command.CommandText = @"UPDATE brands SET brand = @br_name WHERE brand_id = @br_id;";
-            command.Parameters.AddWithValue("br_id", brand.brand_id);
-            command.Parameters.AddWithValue("br_name", brand.brand);
-            int nChanged = command.ExecuteNonQuery();
-            connection.Close();
-            return nChanged == 1;
-        }
-        public List<Category> GetAllCTSSearch(string value)
+        public List<Category> GetAllSearch(string value)
         {
             connection.Open();
             NpgsqlCommand command = connection.CreateCommand();
@@ -140,23 +105,15 @@ namespace consoleApp
             connection.Close();
             return list;
         }
-        public List<Brand> GetAllBRSSearch(string value)
+        public long GetUniqueNamesCount(string name)
         {
             connection.Open();
             NpgsqlCommand command = connection.CreateCommand();
-            command.CommandText = @"SELECT * FROM brands WHERE brand LIKE '%' || @value || '%'";
-            command.Parameters.AddWithValue("value", value);
-            NpgsqlDataReader reader = command.ExecuteReader();
-            List<Brand> list = new List<Brand>();
-            while(reader.Read())
-            {
-                Brand brand = new Brand();
-                brand.brand_id = reader.GetInt32(0);
-                brand.brand = reader.GetString(1);
-                list.Add(brand);
-            }
+            command.CommandText = @"SELECT COUNT(*) FROM categories WHERE category = @name";
+            command.Parameters.AddWithValue("name", name);
+            long num = (long)command.ExecuteScalar();
             connection.Close();
-            return list;
+            return num;
         }
     }
 }

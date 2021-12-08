@@ -43,7 +43,7 @@ namespace consoleApp
             connection.Close();
             return nChanged;
         }
-        public object Insert(Moderator user)
+        public object Insert(Moderator value)
         {
             connection.Open();
             NpgsqlCommand command = connection.CreateCommand();
@@ -52,23 +52,33 @@ namespace consoleApp
                 INSERT INTO moderators (name, password) 
                 VALUES (@name, @password) RETURNING mod_id;
             ";
-            command.Parameters.AddWithValue("name", user.name);
-            command.Parameters.AddWithValue("password", user.password);
+            command.Parameters.AddWithValue("name", value.name);
+            command.Parameters.AddWithValue("password", value.password);
             object newId = command.ExecuteScalar();
             connection.Close();
             return newId;
         }
-        public bool Update(Moderator mod)
+        public bool Update(Moderator value)
         {
             connection.Open();
             NpgsqlCommand command = connection.CreateCommand();
             command.CommandText = "UPDATE moderators SET name = @name, password = @password WHERE mod_id = @mod_id";
-            command.Parameters.AddWithValue("name", mod.name);
-            command.Parameters.AddWithValue("password", mod.password);
-            command.Parameters.AddWithValue("mod_id", mod.mod_id);
+            command.Parameters.AddWithValue("name", value.name);
+            command.Parameters.AddWithValue("password", value.password);
+            command.Parameters.AddWithValue("mod_id", value.mod_id);
             int nChanged = command.ExecuteNonQuery();
             connection.Close();
             return nChanged == 1;
+        }
+        public long GetUniqueNamesCount(string name)
+        {
+            connection.Open();
+            NpgsqlCommand command = connection.CreateCommand();
+            command.CommandText = @"SELECT COUNT(*) FROM moderators WHERE name = @name";
+            command.Parameters.AddWithValue("name", name);
+            long num = (long)command.ExecuteScalar();
+            connection.Close();
+            return num;
         }
         public List<Moderator> GetAllSearch(string value)
         {
