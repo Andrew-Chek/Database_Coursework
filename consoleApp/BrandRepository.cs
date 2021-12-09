@@ -115,5 +115,20 @@ namespace consoleApp
             connection.Close();
             return list;
         }
+        public List<string> GetAllBrands()
+        {
+            connection.Open();
+            NpgsqlCommand command = connection.CreateCommand();
+            command.CommandText = @"SELECT * FROM brands";
+            NpgsqlDataReader reader = command.ExecuteReader();
+            List<string> list = new List<string>();
+            while(reader.Read())
+            {
+                string brand = reader.GetString(1);
+                list.Add(brand);
+            }
+            connection.Close();
+            return list;
+        }
     }
 }

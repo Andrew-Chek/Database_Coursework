@@ -10,10 +10,16 @@ namespace generation
         static void Main(string[] args)
         {
             string connString = "Host=localhost;Port=5432;Database=courseWorkdb;Username=postgres;Password=2003Lipovetc";
-            CategoryRepository repo = new CategoryRepository(connString);
+            CategoryRepository ctgs = new CategoryRepository(connString);
+            BrandRepository brands = new BrandRepository(connString);
+            ItemRepository items = new ItemRepository(connString);
+            ModRepository mods = new ModRepository(connString);
+            Generation generation = new Generation(connString, items, ctgs, brands, mods);
+            ConsoleLog console = new ConsoleLog(generation);
+            console.ProcessCommands();
         }
     }
-    public class ConsoleGenerate
+    /*public class ConsoleGenerate
     {
         private CategoryRepository cts_brs;
         private ItemRepository items;
@@ -60,7 +66,7 @@ namespace generation
                 }
             }
         }
-    }
+    }*/
     public class ConsoleLog
     {
         private Generation generation;
@@ -68,7 +74,7 @@ namespace generation
         {
             this.generation = generation;
         }
-        public void ProcessCommands(string connString)
+        public void ProcessCommands()
         {
             while (true)
             {
@@ -243,33 +249,27 @@ namespace generation
                     WriteLine("Cost is wrong, enter again!");
                 }
             }
-            while (true)
+            Write("Enter a name of category: ");
+            string ctg = ReadLine();
+            if (!Validation.CheckUnique(categories.GetUniqueNamesCount(ctg)))
             {
-                Write("Enter a name of category: ");
-                string name = ReadLine();
-                if (!Validation.CheckUnique(categories.GetUniqueNamesCount(name)))
-                {
-                    item.category_id = categories.GetByName(name).category_id;
-                    break;
-                }
-                else
-                {
-                    WriteLine("Unknown category for item, please enter again!");
-                }
+                item.category_id = categories.GetByName(ctg).category_id;
             }
-            while (true)
+            else
             {
-                Write("Enter a name of brand: ");
-                string name = ReadLine();
-                if (!Validation.CheckUnique(brands.GetUniqueNamesCount(name)))
-                {
-                    item.brand_id = brands.GetByName(name).brand_id;
-                    break;
-                }
-                else
-                {
-                    WriteLine("Unknown brand for item, please enter again!");
-                }
+                Category category = new Category(ctg);
+                item.category_id = (int)categories.Insert(category);
+            }
+            Write("Enter a name of brand: ");
+            string brand_name = ReadLine();
+            if (!Validation.CheckUnique(brands.GetUniqueNamesCount(brand_name)))
+            {
+                item.brand_id = brands.GetByName(brand_name).brand_id;
+            }
+            else
+            {
+                Brand brand = new Brand(brand_name);
+                item.brand_id = (int)brands.Insert(brand);
             }
             return item;
         }
