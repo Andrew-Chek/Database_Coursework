@@ -3,6 +3,7 @@ using static System.Console;
 using consoleApp;
 using Npgsql;
 using System.Collections.Generic;
+using System.IO;
 namespace generation
 {
     class Program
@@ -122,6 +123,10 @@ namespace generation
                     {
                         generation.GenerateMods(num);
                     }
+                    else if(command.Contains("dataset"))
+                    {
+                        
+                    }
                 }
                 else if (command == "exit" || command == "")
                 {
@@ -161,6 +166,114 @@ namespace generation
                 Item item = new Item(names[i], costs[i], brand_ids[i], ctg_ids[i]);
                 items.Insert(item);
             }
+        }
+        public void GenerateModsDataset(int num)
+        {
+            if(num > 50)
+            {
+                WriteLine("Dataset doesn`t have so many values, try with less number");
+                return;
+            }
+            string filePath = "./mods.csv";
+            int count = 0;
+            int realCount = 0;
+            List<string> oldModNames = mods.GetAllNames();
+            for(int i = 0; i < num; i++)
+            {
+                if(count == num)
+                {
+                    break;
+                }
+                StreamReader reader = new StreamReader(filePath);
+                string s = "";
+                while(true)
+                {
+                    s = reader.ReadLine();
+                    if (s == null)
+                    {
+                        break;
+                    }
+                    if(s.StartsWith("name"))
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        string[] array = s.Split(",");
+                        if(!oldModNames.Contains(array[0]))
+                        {
+                            Moderator mod = new Moderator(array[0], array[1]);
+                            mods.Insert(mod);
+                            realCount++;
+                        }
+                        count++;
+                    }
+                    if(count == num)
+                    {
+                        break;
+                    }
+                }
+                if(count == num)
+                {
+                    break;
+                }
+            }
+            WriteLine($"The real number of unique mods added: {realCount}");
+        }
+        public void GenerateItemsDataset(int num)
+        {
+            if(num > 50)
+            {
+                WriteLine("Dataset doesn`t have so many values, try with less number");
+                return;
+            }
+            string filePath = "./items.csv";
+            string filePath1 = "./brands.csv";
+            string filePath2 = "./categories.csv";
+            int count = 0;
+            int realCount = 0;
+            for(int i = 0; i < num; i++)
+            {
+                List<string> oldCtgsNames = categories.GetAllNames();
+                if(count == num)
+                {
+                    break;
+                }
+                StreamReader reader = new StreamReader(filePath);
+                string s = "";
+                while(true)
+                {
+                    s = reader.ReadLine();
+                    if (s == null)
+                    {
+                        break;
+                    }
+                    if(s.StartsWith("name"))
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        string[] array = s.Split(",");
+                        if(!oldCtgsNames.Contains(array[0]))
+                        {
+                            Moderator mod = new Moderator(array[0], array[1]);
+                            mods.Insert(mod);
+                            realCount++;
+                        }
+                        count++;
+                    }
+                    if(count == num)
+                    {
+                        break;
+                    }
+                }
+                if(count == num)
+                {
+                    break;
+                }
+            }
+            WriteLine($"The real number of unique mods added: {realCount}");
         }
         public int[] GenerateBrands(int num)
         {

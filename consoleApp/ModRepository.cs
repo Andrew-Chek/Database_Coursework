@@ -100,5 +100,19 @@ namespace consoleApp
             connection.Close();
             return list;
         }
+        public List<string> GetAllNames()
+        {
+            connection.Open();
+            NpgsqlCommand command = connection.CreateCommand();
+            command.CommandText = @"SELECT * FROM moderators";
+            NpgsqlDataReader reader = command.ExecuteReader();
+            List<string> list = new List<string>();
+            while(reader.Read())
+            {
+                list.Add(reader.GetString(1));
+            }
+            connection.Close();
+            return list;
+        }
     }
 }
