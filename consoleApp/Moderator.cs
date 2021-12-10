@@ -17,6 +17,7 @@ namespace consoleApp
         public Moderator()
         {
             this.name = "newMod";
+            this.password = "nikilo";
         }
         public override string ToString()
         {

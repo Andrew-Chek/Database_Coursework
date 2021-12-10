@@ -7,6 +7,8 @@ namespace consoleApp
         public double cost;
         public int brand_id;
         public int category_id;
+        public virtual Category category { get; set; }
+        public virtual Brand brand { get; set; }
         public Item(string name, double cost, int brand_id, int category_id)
         {
             this.name = name;
@@ -16,10 +18,10 @@ namespace consoleApp
         }
         public Item()
         {
-            this.name = "";
-            this.cost = 0;
-            this.brand_id = 0;
-            this.category_id = 0;
+            this.name = "Beta item";
+            this.cost = 1000;
+            this.brand_id = 3;
+            this.category_id = 3;
         }
         public override string ToString()
         {

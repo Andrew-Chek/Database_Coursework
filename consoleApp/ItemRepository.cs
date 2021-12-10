@@ -1,4 +1,5 @@
 using System;
+using static System.Console;
 using Npgsql;
 using System.Collections.Generic;
 
@@ -7,75 +8,62 @@ namespace consoleApp
     public class ItemRepository
     {
         private NpgsqlConnection connection;
-        public ItemRepository(string connString)
+        private courseWorkdbContext context;
+        public ItemRepository(string connString, courseWorkdbContext context)
         {
             this.connection = new NpgsqlConnection(connString);
+            this.context = context;
         }
         public Item GetById(int id)
         {
-            connection.Open();
-            NpgsqlCommand command = connection.CreateCommand();
-            command.CommandText = "SELECT * FROM items WHERE item_id = @id";
-            command.Parameters.AddWithValue("id", id);
-            NpgsqlDataReader reader = command.ExecuteReader();
-            if(reader.Read())
+            Item item = context.items.Find(id);
+            if (item == null)
             {
-                Item item = new Item();
-                item.item_id = reader.GetInt32(0);
-                item.name = reader.GetString(1);
-                item.cost = reader.GetDouble(2);
-                item.brand_id = reader.GetInt32(3);
-                item.category_id = reader.GetInt32(4);
-                connection.Close();
+                throw new NullReferenceException("Cannot find an object with such id.");
+            }
+            else
                 return item;
-            }
-            else 
+        }
+        public bool DeleteById(int id)
+        {
+            Item item = context.items.Find(id);
+            if (item == null)
             {
-                connection.Close();
-                throw new Exception("there are no items with such id");
+                return false;
+            }
+            else
+            {
+                context.items.Remove(item);
+                context.SaveChanges();
+                return true;
             }
         }
-        public int DeleteById(int id)
+        public object Insert(Item item)
         {
-            connection.Open();
-            NpgsqlCommand command = connection.CreateCommand();
-            command.CommandText = "DELETE FROM items WHERE item_id = @id";
-            command.Parameters.AddWithValue("id", id);
-            int nChanged = command.ExecuteNonQuery();
-            connection.Close();
-            return nChanged;
+            context.items.Add(item);
+            context.SaveChanges();
+            return item.item_id;
         }
-        public object Insert(Item value)
+        public bool Update(Item item)
         {
-            connection.Open();
-            NpgsqlCommand command = connection.CreateCommand();
-            command.CommandText = 
-            @"
-                INSERT INTO items (name, cost, brend_id, category_id) 
-                VALUES (@name, @cost, @br_id, @ct_id) RETURNING item_id;
-            ";
-            command.Parameters.AddWithValue("name", value.name);
-            command.Parameters.AddWithValue("cost", value.cost);
-            command.Parameters.AddWithValue("br_id", value.brand_id);
-            command.Parameters.AddWithValue("ct_id", value.category_id);
-            object newId = (object)command.ExecuteScalar();
-            connection.Close();
-            return newId;
-        }
-        public bool Update(Item value)
-        {
-            connection.Open();
-            NpgsqlCommand command = connection.CreateCommand();
-            command.CommandText = 
-            "Update items SET name = @name, cost = @cost, brend_id = @br_id, category_id = @ct_id WHERE item_id = @id";
-            command.Parameters.AddWithValue("cost", value.cost);
-            command.Parameters.AddWithValue("name", value.name);
-            command.Parameters.AddWithValue("br_id", value.brand_id);
-            command.Parameters.AddWithValue("ct_id", value.category_id);
-            command.Parameters.AddWithValue("id", value.item_id);
-            int nChanged = command.ExecuteNonQuery();
-            connection.Close();
-            return nChanged == 1;
+            try
+            {
+                Item itemToUpdate = context.items.Find(item.item_id);
+                if (itemToUpdate == null)
+                    return false;
+                else
+                    itemToUpdate.name = item.name;
+                    itemToUpdate.cost = item.cost;
+                    itemToUpdate.category_id = item.category_id;
+                    itemToUpdate.brand_id = item.brand_id;
+                context.SaveChanges();
+                return true;
+            }
+            catch(Exception ex)
+            {
+                WriteLine(ex.Message);
+                return false;
+            }
         }
         public long GetUniqueNamesCount(string name)
         {

@@ -1,4 +1,5 @@
 using System;
+using static System.Console;
 using Npgsql;
 using System.Collections.Generic;
 namespace consoleApp
@@ -6,30 +7,21 @@ namespace consoleApp
     public class BrandRepository
     {
         private NpgsqlConnection connection;
-        public BrandRepository(string connString)
+        private courseWorkdbContext context;
+        public BrandRepository(string connString, courseWorkdbContext context)
         {
             this.connection = new NpgsqlConnection(connString);
+            this.context = context;
         }
         public Brand GetById(int id)
         {
-            connection.Open();
-            NpgsqlCommand command = connection.CreateCommand();
-            command.CommandText = "SELECT * FROM brands WHERE brand_id = @id";
-            command.Parameters.AddWithValue("id", id);
-            NpgsqlDataReader reader = command.ExecuteReader();
-            if(reader.Read())
+            Brand brand = context.brands.Find(id);
+            if (brand == null)
             {
-                Brand brand = new Brand();
-                brand.brand_id = reader.GetInt32(0);
-                brand.brand = reader.GetString(1);
-                connection.Close();
+                throw new NullReferenceException("Cannot find an object with such id.");
+            }
+            else
                 return brand;
-            }
-            else 
-            {
-                connection.Close();
-                throw new Exception("there are no brands with such id");
-            }
         }
         public Brand GetByName(string name)
         {
@@ -52,40 +44,71 @@ namespace consoleApp
                 throw new Exception("there are no brands with such name");
             }
         }
-        public int DeleteById(int id)
+        public bool DeleteById(int id)
+        {
+            Brand brand = context.brands.Find(id);
+            if (brand == null)
+            {
+                return false;
+            }
+            else
+            {
+                context.brands.Remove(brand);
+                Item[] items = FindItemsByBrand(brand);
+                for (int i = 0; i < items.Length; i++)
+                {
+                    context.items.Remove(items[i]);
+                }
+                context.SaveChanges();
+                return true;
+            }
+        }
+        public Item[] FindItemsByBrand(Brand brand)
         {
             connection.Open();
             NpgsqlCommand command = connection.CreateCommand();
-            command.CommandText = "DELETE FROM brands WHERE brand_id = @id";
-            command.Parameters.AddWithValue("id", id);
-            int nChanged = command.ExecuteNonQuery();
+            command.CommandText = @"SELECT * FROM items WHERE brand_id = @id";
+            command.Parameters.AddWithValue("id", brand.brand_id);
+            NpgsqlDataReader reader = command.ExecuteReader();
+            List<Item> list = new List<Item>();
+            while (reader.Read())
+            {
+                Item item = new Item();
+                item.item_id = reader.GetInt32(0);
+                item.name = reader.GetString(1);
+                item.cost = reader.GetDouble(2);
+                item.brand_id = reader.GetInt32(3);
+                item.category_id = reader.GetInt32(4);
+                list.Add(item);
+            }
             connection.Close();
-            return nChanged;
+            Item[] array = new Item[list.Count];
+            list.CopyTo(array);
+            return array;
         }
         public object Insert(Brand value)
         {
-            connection.Open();
-            NpgsqlCommand command = connection.CreateCommand();
-            command.CommandText = 
-            @"
-                INSERT INTO brands (brand) 
-                VALUES (@br_name) RETURNING brand_id;
-            ";
-            command.Parameters.AddWithValue("br_name", value.brand);
-            object newId = (object)command.ExecuteScalar();
-            connection.Close();
-            return newId;
+            context.brands.Add(value);
+            context.SaveChanges();
+            return value.brand_id;
         }
         public bool Update(Brand value)
         {
-            connection.Open();
-            NpgsqlCommand command = connection.CreateCommand();
-            command.CommandText = @"UPDATE brands SET brand = @br_name WHERE brand_id = @br_id;";
-            command.Parameters.AddWithValue("br_id", value.brand_id);
-            command.Parameters.AddWithValue("br_name", value.brand);
-            int nChanged = command.ExecuteNonQuery();
-            connection.Close();
-            return nChanged == 1;
+            try
+            {
+                Brand brandToUpdate = context.brands.Find(value.brand_id);
+                if (brandToUpdate == null)
+                    return false;
+                else
+                    brandToUpdate.brand = value.brand;
+                context.SaveChanges();
+                return true;
+            }
+            catch(Exception ex)
+            {
+                WriteLine(ex.Message);
+                return false;
+            }
         }
         public long GetUniqueNamesCount(string name)
         {
@@ -126,6 +149,20 @@ namespace consoleApp
             {
                 string brand = reader.GetString(1);
                 list.Add(brand);
+            }
+            connection.Close();
+            return list;
+        }
+        public List<string> GetAllNames()
+        {
+            connection.Open();
+            NpgsqlCommand command = connection.CreateCommand();
+            command.CommandText = @"SELECT * FROM brands";
+            NpgsqlDataReader reader = command.ExecuteReader();
+            List<string> list = new List<string>();
+            while (reader.Read())
+            {
+                list.Add(reader.GetString(1));
             }
             connection.Close();
             return list;

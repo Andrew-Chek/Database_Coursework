@@ -11,10 +11,11 @@ namespace generation
         static void Main(string[] args)
         {
             string connString = "Host=localhost;Port=5432;Database=courseWorkdb;Username=postgres;Password=2003Lipovetc";
-            CategoryRepository ctgs = new CategoryRepository(connString);
-            BrandRepository brands = new BrandRepository(connString);
-            ItemRepository items = new ItemRepository(connString);
-            ModRepository mods = new ModRepository(connString);
+            courseWorkdbContext context = new courseWorkdbContext();
+            CategoryRepository ctgs = new CategoryRepository(connString, context);
+            BrandRepository brands = new BrandRepository(connString, context);
+            ItemRepository items = new ItemRepository(connString, context);
+            ModRepository mods = new ModRepository(connString, context);
             Generation generation = new Generation(connString, items, ctgs, brands, mods);
             ConsoleLog console = new ConsoleLog(generation);
             console.ProcessCommands();
@@ -125,7 +126,8 @@ namespace generation
                     }
                     else if(command.Contains("dataset"))
                     {
-                        
+                        generation.GenerateModsDataset(num);
+                        generation.GenerateItemsDataset(num);
                     }
                 }
                 else if (command == "exit" || command == "")
@@ -228,13 +230,11 @@ namespace generation
                 return;
             }
             string filePath = "./items.csv";
-            string filePath1 = "./brands.csv";
-            string filePath2 = "./categories.csv";
             int count = 0;
-            int realCount = 0;
             for(int i = 0; i < num; i++)
             {
-                List<string> oldCtgsNames = categories.GetAllNames();
+                List<string> oldBrandNames = brands.GetAllNames();
+                List<string> oldCtgNames = categories.GetAllNames();
                 if(count == num)
                 {
                     break;
@@ -255,12 +255,26 @@ namespace generation
                     else
                     {
                         string[] array = s.Split(",");
-                        if(!oldCtgsNames.Contains(array[0]))
+                        Item item = new Item();
+                        item.name = array[0];
+                        item.cost = double.Parse(array[1]);
+                        if(!oldBrandNames.Contains(array[2]))
                         {
-                            Moderator mod = new Moderator(array[0], array[1]);
-                            mods.Insert(mod);
-                            realCount++;
+                            Brand brand = new Brand();
+                            brand.brand = array[2];
+                            item.brand_id = (int)brands.Insert(brand);
                         }
+                        else
+                            item.brand_id = brands.GetByName(array[2]).brand_id;
+                        if(!oldCtgNames.Contains(array[3]))
+                        {
+                            Category category = new Category();
+                            category.category = array[3];
+                            item.category_id = (int)categories.Insert(category);
+                        }
+                        else
+                            item.category_id = categories.GetByName(array[3]).category_id;
+                        items.Insert(item);
                         count++;
                     }
                     if(count == num)
@@ -273,7 +287,6 @@ namespace generation
                     break;
                 }
             }
-            WriteLine($"The real number of unique mods added: {realCount}");
         }
         public int[] GenerateBrands(int num)
         {

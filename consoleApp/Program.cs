@@ -1,6 +1,7 @@
 ﻿using System;
 using static System.Console;
 using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore.Metadata;
 namespace consoleApp
 {
     class Program
@@ -8,21 +9,25 @@ namespace consoleApp
         static void Main(string[] args)
         {
             string connString = "Host=localhost;Port=5432;Database=courseWorkdb;Username=postgres;Password=2003Lipovetc";
-            CategoryRepository repo = new CategoryRepository(connString);
-            WriteLine("Hello from console");
+            courseWorkdbContext context = new courseWorkdbContext();
+            ItemRepository repo = new ItemRepository(connString, context);
+            WriteLine(repo.GetById(19));
         }
     }
     public static class Validation
     {
         static string connString = "Host=localhost;Port=5432;Database=courseWorkdb;Username=postgres;Password=2003Lipovetc";
-        static CategoryRepository cts_brs;
+        static courseWorkdbContext context = new courseWorkdbContext();
+        static CategoryRepository categories;
+        static BrandRepository brands;
         static ItemRepository items;
         static ModRepository mods;
         static Validation()
         {
-            cts_brs = new CategoryRepository(connString);
-            items = new ItemRepository(connString);
-            mods = new ModRepository(connString);
+            categories = new CategoryRepository(connString, context);
+            items = new ItemRepository(connString, context);
+            mods = new ModRepository(connString, context);
+            brands = new BrandRepository(connString, context);
         }
         public static bool CheckInteger(string value)
         {

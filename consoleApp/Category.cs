@@ -4,13 +4,14 @@ namespace consoleApp
     {
         public string category;
         public int category_id;
+        public virtual ICollection<Item> items { get; set; }
         public Category(string category)
         {
             this.category = category;
         }
         public Category()
         {
-            this.category = "newCT";
+            items = new HashSet<Item>();
         }
         public override string ToString()
         {

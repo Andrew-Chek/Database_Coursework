@@ -1,4 +1,5 @@
 using System;
+using static System.Console;
 using Npgsql;
 using System.Collections.Generic;
 namespace consoleApp
@@ -6,30 +7,21 @@ namespace consoleApp
     public class CategoryRepository
     {
         private NpgsqlConnection connection;
-        public CategoryRepository(string connString)
+        private courseWorkdbContext context;
+        public CategoryRepository(string connString, courseWorkdbContext context)
         {
             this.connection = new NpgsqlConnection(connString);
+            this.context = context;
         }
         public Category GetById(int id)
         {
-            connection.Open();
-            NpgsqlCommand command = connection.CreateCommand();
-            command.CommandText = "SELECT * FROM categories WHERE category_id = @id";
-            command.Parameters.AddWithValue("id", id);
-            NpgsqlDataReader reader = command.ExecuteReader();
-            if(reader.Read())
+            Category category = context.categories.Find(id);
+            if (category == null)
             {
-                Category category = new Category();
-                category.category_id = reader.GetInt32(0);
-                category.category = reader.GetString(1);
-                connection.Close();
+                throw new NullReferenceException("Cannot find an object with such id.");
+            }
+            else
                 return category;
-            }
-            else 
-            {
-                connection.Close();
-                throw new Exception("there are no categories with such id");
-            }
         }
         public Category GetByName(string name)
         {
@@ -38,7 +30,7 @@ namespace consoleApp
             command.CommandText = "SELECT * FROM categories WHERE category = @name";
             command.Parameters.AddWithValue("name", name);
             NpgsqlDataReader reader = command.ExecuteReader();
-            if(reader.Read())
+            if (reader.Read())
             {
                 Category category = new Category();
                 category.category_id = reader.GetInt32(0);
@@ -46,46 +38,77 @@ namespace consoleApp
                 connection.Close();
                 return category;
             }
-            else 
+            else
             {
                 connection.Close();
                 throw new Exception("there are no categories with such name");
             }
         }
-        public int DeleteById(int id)
+        public bool DeleteById(int id)
+        {
+            Category ctg = context.categories.Find(id);
+            if (ctg == null)
+            {
+                return false;
+            }
+            else
+            {
+                context.categories.Remove(ctg);
+                Item[] items = FindItemsByCategory(ctg);
+                for (int i = 0; i < items.Length; i++)
+                {
+                    context.items.Remove(items[i]);
+                }
+                context.SaveChanges();
+                return true;
+            }
+        }
+        public Item[] FindItemsByCategory(Category ctg)
         {
             connection.Open();
             NpgsqlCommand command = connection.CreateCommand();
-            command.CommandText = "DELETE FROM categories WHERE category_id = @id";
-            command.Parameters.AddWithValue("id", id);
-            int nChanged = command.ExecuteNonQuery();
+            command.CommandText = @"SELECT * FROM items WHERE category_id = @id";
+            command.Parameters.AddWithValue("id", ctg.category_id);
+            NpgsqlDataReader reader = command.ExecuteReader();
+            List<Item> list = new List<Item>();
+            while (reader.Read())
+            {
+                Item item = new Item();
+                item.item_id = reader.GetInt32(0);
+                item.name = reader.GetString(1);
+                item.cost = reader.GetDouble(2);
+                item.brand_id = reader.GetInt32(3);
+                item.category_id = reader.GetInt32(4);
+                list.Add(item);
+            }
             connection.Close();
-            return nChanged;
+            Item[] array = new Item[list.Count];
+            list.CopyTo(array);
+            return array;
         }
         public object Insert(Category value)
         {
-            connection.Open();
-            NpgsqlCommand command = connection.CreateCommand();
-            command.CommandText = 
-            @"
-                INSERT INTO categories (category) 
-                VALUES (@ct_name) RETURNING category_id;
-            ";
-            command.Parameters.AddWithValue("ct_name", value.category);
-            object newId = (object)command.ExecuteScalar();
-            connection.Close();
-            return newId;
+            context.categories.Add(value);
+            context.SaveChanges();
+            return value.category_id;
         }
-        public bool Update(Category value)
+        public bool Update(Category category)
         {
-            connection.Open();
-            NpgsqlCommand command = connection.CreateCommand();
-            command.CommandText = @"UPDATE categories SET category = @ct_name WHERE category_id = @ct_id;";
-            command.Parameters.AddWithValue("ct_id", value.category_id);
-            command.Parameters.AddWithValue("ct_name", value.category);
-            int nChanged = command.ExecuteNonQuery();
-            connection.Close();
-            return nChanged == 1;
+            try
+            {
+                Category ctgToUpdate = context.categories.Find(category.category_id);
+                if (ctgToUpdate == null)
+                    return false;
+                else
+                    ctgToUpdate.category = category.category;
+                context.SaveChanges();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                WriteLine(ex.Message);
+                return false;
+            }
         }
         public List<Category> GetAllSearch(string value)
         {
@@ -95,7 +118,7 @@ namespace consoleApp
             command.Parameters.AddWithValue("value", value);
             NpgsqlDataReader reader = command.ExecuteReader();
             List<Category> list = new List<Category>();
-            while(reader.Read())
+            while (reader.Read())
             {
                 Category category = new Category();
                 category.category_id = reader.GetInt32(0);
@@ -114,6 +137,20 @@ namespace consoleApp
             long num = (long)command.ExecuteScalar();
             connection.Close();
             return num;
+        }
+        public List<string> GetAllNames()
+        {
+            connection.Open();
+            NpgsqlCommand command = connection.CreateCommand();
+            command.CommandText = @"SELECT * FROM categories";
+            NpgsqlDataReader reader = command.ExecuteReader();
+            List<string> list = new List<string>();
+            while (reader.Read())
+            {
+                list.Add(reader.GetString(1));
+            }
+            connection.Close();
+            return list;
         }
     }
 }
