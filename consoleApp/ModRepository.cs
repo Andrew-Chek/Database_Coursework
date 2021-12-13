@@ -66,6 +66,7 @@ namespace consoleApp
         }
         public List<Moderator> GetAllSearch(string value)
         {
+            AddingIndexes();
             connection.Open();
             NpgsqlCommand command = connection.CreateCommand();
             command.CommandText = @"SELECT * FROM moderators WHERE name LIKE '%' || @value || '%' 
@@ -84,19 +85,16 @@ namespace consoleApp
             connection.Close();
             return list;
         }
-        public List<string> GetAllNames()
+        private void AddingIndexes()
         {
             connection.Open();
             NpgsqlCommand command = connection.CreateCommand();
-            command.CommandText = @"SELECT * FROM moderators";
-            NpgsqlDataReader reader = command.ExecuteReader();
-            List<string> list = new List<string>();
-            while (reader.Read())
-            {
-                list.Add(reader.GetString(1));
-            }
+            command.CommandText = @"
+                CREATE INDEX if not exists mods_name_idx ON moderators using GIN (name);
+                CREATE INDEX if not exists mods_psw_idx ON moderators using GIN (password);
+            ";
+            int nChanged = command.ExecuteNonQuery();
             connection.Close();
-            return list;
         }
     }
 }

@@ -38,6 +38,26 @@ namespace consoleApp
                 return true;
             }
         }
+        public bool DeleteAllByCtgId(int id)
+        {
+            connection.Open();
+            NpgsqlCommand command = connection.CreateCommand();
+            command.CommandText = @"DELETE FROM items WHERE category_id = @ctg_id";
+            command.Parameters.AddWithValue("ctg_id", id);
+            int nChanged = (int)command.ExecuteScalar();
+            connection.Close();
+            return nChanged == 1;
+        }
+        public bool DeleteAllByBrandId(int id)
+        {
+            connection.Open();
+            NpgsqlCommand command = connection.CreateCommand();
+            command.CommandText = @"DELETE FROM items WHERE brand_id = @brand_id";
+            command.Parameters.AddWithValue("brand_id", id);
+            int nChanged = (int)command.ExecuteScalar();
+            connection.Close();
+            return nChanged == 1;
+        }
         public object Insert(Item item)
         {
             context.items.Add(item);
@@ -77,6 +97,7 @@ namespace consoleApp
         }
         public List<Item> GetAllSearch(string value, int[] measures)
         {
+            AddingIndexes();
             connection.Open();
             NpgsqlCommand command = connection.CreateCommand();
             command.CommandText = @"SELECT * FROM items WHERE name LIKE '%' || @value || '%' 
@@ -98,6 +119,17 @@ namespace consoleApp
             }
             connection.Close();
             return list;
+        }
+        private void AddingIndexes()
+        {
+            connection.Open();
+            NpgsqlCommand command = connection.CreateCommand();
+            command.CommandText = @"
+                CREATE INDEX if not exists items_cost_idx ON items (cost);
+                CREATE INDEX if not exists items_name_idx ON items using GIN (name);
+            ";
+            int nChanged = command.ExecuteNonQuery();
+            connection.Close();
         }
     }
 }

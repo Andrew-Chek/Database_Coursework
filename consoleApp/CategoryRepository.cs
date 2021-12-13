@@ -112,6 +112,7 @@ namespace consoleApp
         }
         public List<Category> GetAllSearch(string value)
         {
+            AddingIndexes();
             connection.Open();
             NpgsqlCommand command = connection.CreateCommand();
             command.CommandText = @"SELECT * FROM categories WHERE category LIKE '%' || @value || '%'";
@@ -138,19 +139,15 @@ namespace consoleApp
             connection.Close();
             return num;
         }
-        public List<string> GetAllNames()
+        private void AddingIndexes()
         {
             connection.Open();
             NpgsqlCommand command = connection.CreateCommand();
-            command.CommandText = @"SELECT * FROM categories";
-            NpgsqlDataReader reader = command.ExecuteReader();
-            List<string> list = new List<string>();
-            while (reader.Read())
-            {
-                list.Add(reader.GetString(1));
-            }
+            command.CommandText = @"
+                CREATE INDEX if not exists categories_name_idx ON categories using GIN (category);
+            ";
+            int nChanged = command.ExecuteNonQuery();
             connection.Close();
-            return list;
         }
     }
 }

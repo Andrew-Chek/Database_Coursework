@@ -3,8 +3,13 @@ namespace consoleApp
 {
     public partial class courseWorkdbContext : DbContext
     {
+        private string connString;
         public courseWorkdbContext()
         {
+        }
+        public courseWorkdbContext(string connString)
+        {
+            this.connString = connString;
         }
 
         public courseWorkdbContext(DbContextOptions<courseWorkdbContext> options)
@@ -21,7 +26,7 @@ namespace consoleApp
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseNpgsql("Host=localhost;Port=5432;Database=courseWorkdb;Username=postgres;Password=2003Lipovetc");
+                optionsBuilder.UseNpgsql(connString);
             }
         }
 

@@ -122,6 +122,7 @@ namespace consoleApp
         }
         public List<Brand> GetAllSearch(string value)
         {
+            AddingIndexes();
             connection.Open();
             NpgsqlCommand command = connection.CreateCommand();
             command.CommandText = @"SELECT * FROM brands WHERE brand LIKE '%' || @value || '%'";
@@ -138,34 +139,15 @@ namespace consoleApp
             connection.Close();
             return list;
         }
-        public List<string> GetAllBrands()
+        private void AddingIndexes()
         {
             connection.Open();
             NpgsqlCommand command = connection.CreateCommand();
-            command.CommandText = @"SELECT * FROM brands";
-            NpgsqlDataReader reader = command.ExecuteReader();
-            List<string> list = new List<string>();
-            while(reader.Read())
-            {
-                string brand = reader.GetString(1);
-                list.Add(brand);
-            }
+            command.CommandText = @"
+                CREATE INDEX if not exists brands_name_idx ON brands using GIN (brand);
+            ";
+            int nChanged = command.ExecuteNonQuery();
             connection.Close();
-            return list;
-        }
-        public List<string> GetAllNames()
-        {
-            connection.Open();
-            NpgsqlCommand command = connection.CreateCommand();
-            command.CommandText = @"SELECT * FROM brands";
-            NpgsqlDataReader reader = command.ExecuteReader();
-            List<string> list = new List<string>();
-            while (reader.Read())
-            {
-                list.Add(reader.GetString(1));
-            }
-            connection.Close();
-            return list;
         }
     }
 }
