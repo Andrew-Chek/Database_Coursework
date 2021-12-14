@@ -76,11 +76,25 @@ namespace consoleApp
             List<Moderator> list = new List<Moderator>();
             while (reader.Read())
             {
-                Moderator user = new Moderator();
-                user.mod_id = reader.GetInt32(0);
-                user.name = reader.GetString(1);
-                user.password = reader.GetString(2);
-                list.Add(user);
+                Moderator mod = new Moderator();
+                mod.mod_id = reader.GetInt32(0);
+                mod.name = reader.GetString(1);
+                mod.password = reader.GetString(2);
+                list.Add(mod);
+            }
+            connection.Close();
+            return list;
+        }
+        public List<string> GetAllNames()
+        {
+            connection.Open();
+            NpgsqlCommand command = connection.CreateCommand();
+            command.CommandText = @"SELECT * FROM moderators";
+            NpgsqlDataReader reader = command.ExecuteReader();
+            List<string> list = new List<string>();
+            while (reader.Read())
+            {
+                list.Add(reader.GetString(1));
             }
             connection.Close();
             return list;

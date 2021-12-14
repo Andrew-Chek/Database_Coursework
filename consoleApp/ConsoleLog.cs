@@ -41,8 +41,10 @@ namespace consoleApp
             }
             return arr;
         }
-        public void ProcessCommands(string command)
+        public void ProcessCommands()
         {
+            Write("Enter a command: ");
+            string command = ReadLine();
             if (command.Contains("get"))
             {
                 string numVal = GetId(command, 5);
@@ -50,19 +52,19 @@ namespace consoleApp
                 if (int.TryParse(numVal, out id))
                 {
                     id = int.Parse(numVal);
-                    if (command[1] == 'i')
+                    if (command[4] == 'i')
                     {
                         ProcessGetItem(id);
                     }
-                    else if (command[1] == 'c')
+                    else if (command[4] == 'c')
                     {
                         ProcessGetCategory(id);
                     }
-                    else if (command[1] == 'm')
+                    else if (command[4] == 'm')
                     {
                         ProcessGetMod(id);
                     }
-                    else if (command[1] == 'b')
+                    else if (command[4] == 'b')
                     {
                         ProcessGetBrand(id);
                     }
@@ -82,19 +84,19 @@ namespace consoleApp
                 if (int.TryParse(numVal, out int num))
                 {
                     int id = int.Parse(numVal);
-                    if (command[1] == 'i')
+                    if (command[7] == 'i')
                     {
                         ProcessDelItem(id);
                     }
-                    else if (command[1] == 'c')
+                    else if (command[7] == 'c')
                     {
                         ProcessDelCategory(id);
                     }
-                    else if (command[1] == 'b')
+                    else if (command[7] == 'b')
                     {
                         ProcessDelBrand(id);
                     }
-                    else if (command[1] == 'm')
+                    else if (command[7] == 'm')
                     {
                         ProcessDelMod(id);
                     }
@@ -114,25 +116,25 @@ namespace consoleApp
                 if (int.TryParse(numVal, out int num))
                 {
                     int id = int.Parse(numVal);
-                    if (command[1] == 'i')
+                    if (command[7] == 'i')
                     {
                         Item item = items.GetById(id);
                         Item newItem = SetItem(item);
                         WriteLine($"Was item updated successfully? - {items.Update(newItem)}");
                     }
-                    else if (command[1] == 'c')
+                    else if (command[7] == 'c')
                     {
                         Category category = ctgs.GetById(id);
                         Category newCategory = SetCategory(category);
                         WriteLine($"Was order updated successfully? - {ctgs.Update(newCategory)}");
                     }
-                    else if (command[1] == 'b')
+                    else if (command[7] == 'b')
                     {
                         Brand brand = brands.GetById(id);
                         Brand newBrand = SetBrand(brand);
                         WriteLine($"Was order updated successfully? - {brands.Update(newBrand)}");
                     }
-                    else if (command[1] == 'm')
+                    else if (command[7] == 'm')
                     {
                         Moderator mod = mods.GetById(id);
                         Moderator newMod = FillMod();
@@ -152,26 +154,11 @@ namespace consoleApp
             {
                 Write("Enter a search subline: ");
                 string value = ReadLine();
-                int[] measures1;
-                while (true)
-                {
-                    Write("Enter measures for cost for item: ");
-                    string measure1 = ReadLine();
-                    measures1 = GetMeasures(measure1);
-                    if (measures1[0] != measures1[1])
-                    {
-                        break;
-                    }
-                    else
-                    {
-                        WriteLine("Wrong measures, please enter again!");
-                    }
-                }
                 if (command.Contains("items"))
                 {
                     Stopwatch sw = new Stopwatch();
                     sw.Start();
-                    ProcessSearchItems(value, measures1);
+                    ProcessSearchItems(value);
                     sw.Stop();
                 }
                 else if (command.Contains("categories"))
@@ -199,7 +186,7 @@ namespace consoleApp
                 {
                     Stopwatch sw = new Stopwatch();
                     sw.Start();
-                    ProcessSearchItems(value, measures1);
+                    ProcessSearchItems(value);
                     ProcessSearchBrands(value);
                     ProcessSearchCategories(value);
                     ProcessSearchMods(value);
@@ -242,7 +229,6 @@ namespace consoleApp
         }
         public Item SetItem(Item item)
         {
-            string costVal = "";
             while (true)
             {
                 Write("Enter a name of updating item: ");
@@ -256,7 +242,7 @@ namespace consoleApp
                 while (true)
                 {
                     Write("Enter a cost of updating item: ");
-                    costVal = ReadLine();
+                    string costVal = ReadLine();
                     if (costVal == "")
                     {
                         break;
@@ -269,6 +255,20 @@ namespace consoleApp
                     else
                     {
                         WriteLine("Cost is wrong, enter again!");
+                    }
+                }
+                while (true)
+                {
+                    Write("Enter year of creation for updating item: ");
+                    string yearName = ReadLine();
+                    if (int.TryParse(yearName, out item.createYear) && int.Parse(yearName) > 1980 && int.Parse(yearName) < 2022)
+                    {
+                        item.createYear = int.Parse(yearName);
+                        break;
+                    }
+                    else
+                    {
+                        WriteLine("Wrong year, please enter again!");
                     }
                 }
                 break;
@@ -299,7 +299,7 @@ namespace consoleApp
         {
             while (true)
             {
-                Write("Enter a command: ");
+                Write("Enter a login command: ");
                 string command = ReadLine();
                 if (command.Contains("registrate"))
                 {
@@ -318,7 +318,16 @@ namespace consoleApp
                 }
                 else if (command.Contains("autentificate"))
                 {
-                    ProcessCommands(command);
+                    ProcessCommands();
+                    break;
+                }
+                else if (command == "exit" || command == "")
+                {
+                    WriteLine("Bye.");
+                }
+                else
+                {
+                    WriteLine("Unknown command.");
                 }
             }
         }
@@ -342,12 +351,42 @@ namespace consoleApp
             sw.Stop();
             WriteLine($"Elapsed time for moderator's search is: {sw.Elapsed}");
         }
-        public void ProcessSearchItems(string value, int[] measures1)
+        public void ProcessSearchItems(string value)
         {
+            int[] measures1;
+            while (true)
+            {
+                Write("Enter measures for cost for item: ");
+                string measure1 = ReadLine();
+                measures1 = GetMeasures(measure1);
+                if (measures1[0] != measures1[1])
+                {
+                    break;
+                }
+                else
+                {
+                    WriteLine("Wrong measures, please enter again!");
+                }
+            }
+            int year = 0;
+            while (true)
+            {
+                Write("Enter year of creation for item: ");
+                string yearName = ReadLine();
+                if (int.TryParse(yearName, out year) && int.Parse(yearName) > 1980 && int.Parse(yearName) < 2022)
+                {
+                    year = int.Parse(yearName);
+                    break;
+                }
+                else
+                {
+                    WriteLine("Wrong year, please enter again!");
+                }
+            }
             Stopwatch sw = new Stopwatch();
             sw.Start();
             Write("Serch Items: ");
-            List<Item> searchIts = items.GetAllSearch(value, measures1);
+            List<Item> searchIts = items.GetAllSearch(value, measures1, year);
             Item[] itArr = new Item[searchIts.Count];
             searchIts.CopyTo(itArr);
             if (itArr.Length == 0)
@@ -404,15 +443,8 @@ namespace consoleApp
         }
         public void ProcessGetItem(int id)
         {
-            try
-            {
                 Item item = items.GetById(id);
                 WriteLine(item.ToString());
-            }
-            catch
-            {
-                WriteLine("item id isn`t correct");
-            }
         }
         public void ProcessGetCategory(int id)
         {

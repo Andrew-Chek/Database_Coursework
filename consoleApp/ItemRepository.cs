@@ -76,6 +76,7 @@ namespace consoleApp
                     itemToUpdate.cost = item.cost;
                     itemToUpdate.category_id = item.category_id;
                     itemToUpdate.brand_id = item.brand_id;
+                    itemToUpdate.createYear = item.createYear;
                 context.SaveChanges();
                 return true;
             }
@@ -85,26 +86,17 @@ namespace consoleApp
                 return false;
             }
         }
-        public long GetUniqueNamesCount(string name)
-        {
-            connection.Open();
-            NpgsqlCommand command = connection.CreateCommand();
-            command.CommandText = @"SELECT COUNT(*) FROM items WHERE name = @name";
-            command.Parameters.AddWithValue("name", name);
-            long num = (long)command.ExecuteScalar();
-            connection.Close();
-            return num;
-        }
-        public List<Item> GetAllSearch(string value, int[] measures)
+        public List<Item> GetAllSearch(string value, int[] measures, int year)
         {
             AddingIndexes();
             connection.Open();
             NpgsqlCommand command = connection.CreateCommand();
             command.CommandText = @"SELECT * FROM items WHERE name LIKE '%' || @value || '%' 
-                or cost BETWEEN @a AND @b";
+                or cost BETWEEN @a AND @b or createYear = @createYear";
             command.Parameters.AddWithValue("value", value);
             command.Parameters.AddWithValue("a", measures[0]);
             command.Parameters.AddWithValue("b", measures[1]);
+            command.Parameters.AddWithValue("createYear", year);
             NpgsqlDataReader reader = command.ExecuteReader();
             List<Item> list = new List<Item>();
             while(reader.Read())
@@ -115,6 +107,7 @@ namespace consoleApp
                 item.cost = reader.GetDouble(2);
                 item.brand_id = reader.GetInt32(3);
                 item.category_id = reader.GetInt32(4);
+                item.createYear = reader.GetInt32(5);
                 list.Add(item);
             }
             connection.Close();

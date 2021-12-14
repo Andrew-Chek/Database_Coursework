@@ -1,51 +1,51 @@
-name,cost,brand,category
-Neka sneakers,2000,Neca,footwear
-Shampoo,200,MyChelle,body care
-Jogurt,50,Colombo Yogurt (dropped),sour milk
-Manga,350,Morinaga 森永製菓,magazine
-tablets,250,Vibrant Health,health care
-RAM 8gb,3000,Shea Terra,parts of computer
-Shampoo,390,Gerblinéa,body care
-JBL 1234,1200,JBL,headphones
-Yamaha 234,900,Music City Metals,musical instrument
-Philips L23,6000,Philips,headphones
-Timer 12,2000,Speed Stick,speed inventory
-Ahmad tea,100,Clipper Teas,hot drink
-sushi set,600,Tootsie Roll,food
-hammock,4000,Nature's Goodness,for nature
-smart power strip,600,Smart Balance,smart devices
-router,500,Pangea,international network
-fan,2500,Simply Asia,asian items
-big lego constructor,6000,Toya brands,toys
-swivel chair,4000,Basic,office equipment
-diamond ring,60000,Crystal Farms,knick-knackery
-leather coat,20000,Stella d'Oro,clothes
-big kit kat,25,Kit Kat,food
-pepsi cola,30,Pepsi,soft drink
-Irish air freshener,600,Irish Spring,air fresheners
-Xiomi redmi 5+,4000,Xiomi,mobile phones
-Colgate total,70,Colgate,toothpaste
-Coca cola 2l,35,Coca-Cola,soft drink
-Dannon jogurt,25,Dannon,sour milk
-Adidas jacket,10000,Adidas,footwear
-Nike Air Mag Back to the Future,676000,Nike,clothes
-Acer NEW PC,25000,Acer,personal computer
-Iphone 12,30000,Apple,mobile phones
-Programmable thermostat,10000,Smart ones,smart devices
-Whiskey,750,Jack Daniel's,alcohol
-Bookshelf,700,Hooker Furniture,furniture
-Air conditioning,4500,York,climatic technologies
-memory bar 1tb,2000,Kingston,parts of computer
-Leather dog colar,2500,Crazy Dog,for pets
-hairspray,400,Laurastar,hair care
-Lipton tea(large pack),300,Lipton,hot drink
-Flair 1km pen,60,Flair,pens
-Gillete shaving machine,3000,Gillette,body care
-Mountain bike,6500,Ardis,bicycle goods
-Backpack for travelling,1500,Urban planet,backpacks
-Supreme sweatshirt,6000,Spice Supreme,clothes
-Volleyball ball,3500,Mikasa,balls
-IPad,25000,Apple,tablet
-Large Teddy Bear,4000,Diamond Select Toys,toys
-Flash memory 16gb,1500,Virginia slims,flash memory
-Aroma candle set, 1500,Market Spa,spa items
+name,cost,brand,category,createYear
+Neka sneakers,2000,Neca,footwear,2020
+Shampoo,200,MyChelle,body care,2016
+Jogurt,50,Colombo Yogurt (dropped),sour milk,2003
+Manga,350,Morinaga 森永製菓,magazine,2004
+tablets,250,Vibrant Health,health care,2005
+RAM 8gb,3000,Shea Terra,parts of computer,2007
+Shampoo,390,Gerblinéa,body care,2019
+JBL 1234,1200,JBL,headphones,2018
+Yamaha 234,900,Music City Metals,musical instrument,2020
+Philips L23,6000,Philips,headphones,2021
+Timer 12,2000,Speed Stick,speed inventory,1990
+Ahmad tea,100,Clipper Teas,hot drink,1980
+sushi set,600,Tootsie Roll,food,1998
+hammock,4000,Nature's Goodness,for nature,2007
+smart power strip,600,Smart Balance,smart devices,2008
+router,500,Pangea,international network,2010
+fan,2500,Simply Asia,asian items,2012
+big lego constructor,6000,Toya brands,toys,2013
+swivel chair,4000,Basic,office equipment,2015
+diamond ring,60000,Crystal Farms,knick-knackery,2016
+leather coat,20000,Stella d'Oro,clothes,2006
+big kit kat,25,Kit Kat,food,2004
+pepsi cola,30,Pepsi,soft drink,2005
+Irish air freshener,600,Irish Spring,air fresheners,2011
+Xiomi redmi 5+,4000,Xiomi,mobile phones,2017
+Colgate total,70,Colgate,toothpaste,1986
+Coca cola 2l,35,Coca-Cola,soft drink,1989
+Dannon jogurt,25,Dannon,sour milk,1993
+Adidas jacket,10000,Adidas,footwear,1994
+Nike Air Mag Back to the Future,676000,Nike,clothes,2022
+Acer NEW PC,25000,Acer,personal computer,2020
+Iphone 12,30000,Apple,mobile phones,2019
+Programmable thermostat,10000,Smart ones,smart devices,2019
+Whiskey,750,Jack Daniel's,alcohol,2005
+Bookshelf,700,Hooker Furniture,furniture,2000
+Air conditioning,4500,York,climatic technologies,1999
+memory bar 1tb,2000,Kingston,parts of computer,2016
+Leather dog colar,2500,Crazy Dog,for pets,2012
+hairspray,400,Laurastar,hair care,2015
+Lipton tea(large pack),300,Lipton,hot drink,2013
+Flair 1km pen,60,Flair,pens,2002
+Gillete shaving machine,3000,Gillette,body care,2010
+Mountain bike,6500,Ardis,bicycle goods,2013
+Backpack for travelling,1500,Urban planet,backpacks,2018
+Supreme sweatshirt,6000,Spice Supreme,clothes,2021
+Volleyball ball,3500,Mikasa,balls,2021
+IPad,25000,Apple,tablet,2020
+Large Teddy Bear,4000,Diamond Select Toys,toys,2013
+Flash memory 16gb,1500,Virginia slims,flash memory,2016
+Aroma candle set, 1500,Market Spa,spa items,2000

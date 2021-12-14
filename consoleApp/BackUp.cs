@@ -3,12 +3,11 @@ namespace consoleApp
 {
     public class BackUp
     {
-        private string connString = "Host=localhost;Port=5432;Database=courseWorkdb;Username=postgres;Password=2003Lipovetc";
-        private NpgsqlConnection connection;
+        private courseWorkdbContext context;
         private string location;
-        public BackUp()
+        public BackUp(string connString)
         {
-            this.connection = new NpgsqlConnection(connString);
+            this.context = new courseWorkdbContext();
         }
         public void CreateBackupFile(string location)
         {
@@ -16,7 +15,7 @@ namespace consoleApp
         }
         public void RestoreDatabase()
         {
-            
+            context.Database.EnsureCreated();
         }
     }
 }

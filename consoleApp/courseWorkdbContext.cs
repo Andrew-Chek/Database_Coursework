@@ -3,13 +3,8 @@ namespace consoleApp
 {
     public partial class courseWorkdbContext : DbContext
     {
-        private string connString;
         public courseWorkdbContext()
         {
-        }
-        public courseWorkdbContext(string connString)
-        {
-            this.connString = connString;
         }
 
         public courseWorkdbContext(DbContextOptions<courseWorkdbContext> options)
@@ -26,7 +21,7 @@ namespace consoleApp
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseNpgsql(connString);
+                optionsBuilder.UseNpgsql("Host=localhost;Port=5432;Database=courseWorkdb;Username=postgres;Password=2003Lipovetc");
             }
         }
 
@@ -82,6 +77,8 @@ namespace consoleApp
                 entity.Property(e => e.category_id).HasColumnName("category_id");
 
                 entity.Property(e => e.cost).HasColumnName("cost");
+
+                entity.Property(e => e.createYear).HasColumnName("createYear");
 
                 entity.Property(e => e.name)
                     .IsRequired()
