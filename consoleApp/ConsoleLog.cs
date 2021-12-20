@@ -1,5 +1,8 @@
 using static System.Console;
 using System.Diagnostics;
+using Microsoft.ML;
+using RepoCode;
+using PredictionLib;
 namespace consoleApp
 {
     public class ConsoleLog
@@ -8,14 +11,18 @@ namespace consoleApp
         private CategoryRepository ctgs;
         private BrandRepository brands;
         private ModRepository mods;
-
-        public ConsoleLog(ItemRepository items, CategoryRepository ctgs, BrandRepository brands, ModRepository mods)
+        private CostPrediction prediction;
+        private Autentification autentification;
+        public ConsoleLog(ItemRepository items, CategoryRepository ctgs, BrandRepository brands, ModRepository mods, CostPrediction prediction, Autentification autentification)
         {
             this.items = items;
             this.ctgs = ctgs;
             this.brands = brands;
             this.mods = mods;
+            this.prediction = prediction;
+            this.autentification = autentification;
         }
+
         public string GetId(string command, int number)
         {
             string id_value = "";
@@ -43,164 +50,192 @@ namespace consoleApp
         }
         public void ProcessCommands()
         {
-            Write("Enter a command: ");
-            string command = ReadLine();
-            if (command.Contains("get"))
+            while(true)
             {
-                string numVal = GetId(command, 5);
-                int id;
-                if (int.TryParse(numVal, out id))
+                Write("Enter a command: ");
+                string command = ReadLine();
+                if (command.Contains("get"))
                 {
-                    id = int.Parse(numVal);
-                    if (command[4] == 'i')
+                    string numVal = GetId(command, 5);
+                    int id;
+                    if (int.TryParse(numVal, out id))
                     {
-                        ProcessGetItem(id);
-                    }
-                    else if (command[4] == 'c')
-                    {
-                        ProcessGetCategory(id);
-                    }
-                    else if (command[4] == 'm')
-                    {
-                        ProcessGetMod(id);
-                    }
-                    else if (command[4] == 'b')
-                    {
-                        ProcessGetBrand(id);
+                        id = int.Parse(numVal);
+                        if (command[4] == 'i')
+                        {
+                            ProcessGetItem(id);
+                        }
+                        else if (command[4] == 'c')
+                        {
+                            ProcessGetCategory(id);
+                        }
+                        else if (command[4] == 'm')
+                        {
+                            ProcessGetMod(id);
+                        }
+                        else if (command[4] == 'b')
+                        {
+                            ProcessGetBrand(id);
+                        }
+                        else
+                        {
+                            WriteLine("Unknown command.");
+                        }
                     }
                     else
                     {
-                        WriteLine("Unknown command.");
+                        WriteLine("Id should be a number");
                     }
                 }
-                else
+                else if (command.Contains("delete"))
                 {
-                    WriteLine("Id should be a number");
-                }
-            }
-            else if (command.Contains("delete"))
-            {
-                string numVal = GetId(command, 7);
-                if (int.TryParse(numVal, out int num))
-                {
-                    int id = int.Parse(numVal);
-                    if (command[7] == 'i')
+                    string numVal = GetId(command, 7);
+                    if (int.TryParse(numVal, out int num))
                     {
-                        ProcessDelItem(id);
-                    }
-                    else if (command[7] == 'c')
-                    {
-                        ProcessDelCategory(id);
-                    }
-                    else if (command[7] == 'b')
-                    {
-                        ProcessDelBrand(id);
-                    }
-                    else if (command[7] == 'm')
-                    {
-                        ProcessDelMod(id);
+                        int id = int.Parse(numVal);
+                        if (command[7] == 'i')
+                        {
+                            ProcessDelItem(id);
+                        }
+                        else if (command[7] == 'c')
+                        {
+                            ProcessDelCategory(id);
+                        }
+                        else if (command[7] == 'b')
+                        {
+                            ProcessDelBrand(id);
+                        }
+                        else if (command[7] == 'm')
+                        {
+                            ProcessDelMod(id);
+                        }
+                        else
+                        {
+                            WriteLine("Unknown command.");
+                        }
                     }
                     else
                     {
-                        WriteLine("Unknown command.");
+                        WriteLine("Id should be a number");
                     }
                 }
-                else
+                else if (command.Contains("update"))
                 {
-                    WriteLine("Id should be a number");
-                }
-            }
-            else if (command.Contains("update"))
-            {
-                string numVal = GetId(command, 8);
-                if (int.TryParse(numVal, out int num))
-                {
-                    int id = int.Parse(numVal);
-                    if (command[7] == 'i')
+                    string numVal = GetId(command, 8);
+                    if (int.TryParse(numVal, out int num))
                     {
-                        Item item = items.GetById(id);
-                        Item newItem = SetItem(item);
-                        WriteLine($"Was item updated successfully? - {items.Update(newItem)}");
-                    }
-                    else if (command[7] == 'c')
-                    {
-                        Category category = ctgs.GetById(id);
-                        Category newCategory = SetCategory(category);
-                        WriteLine($"Was order updated successfully? - {ctgs.Update(newCategory)}");
-                    }
-                    else if (command[7] == 'b')
-                    {
-                        Brand brand = brands.GetById(id);
-                        Brand newBrand = SetBrand(brand);
-                        WriteLine($"Was order updated successfully? - {brands.Update(newBrand)}");
-                    }
-                    else if (command[7] == 'm')
-                    {
-                        Moderator mod = mods.GetById(id);
-                        Moderator newMod = FillMod();
-                        WriteLine($"Was user updated successfully? - {mods.Update(newMod)}");
+                        int id = int.Parse(numVal);
+                        if (command[7] == 'i')
+                        {
+                            Item item = items.GetById(id);
+                            Item newItem = SetItem(item);
+                            WriteLine($"Was item updated successfully? - {items.Update(newItem)}");
+                        }
+                        else if (command[7] == 'c')
+                        {
+                            Category category = ctgs.GetById(id);
+                            Category newCategory = SetCategory(category);
+                            WriteLine($"Was order updated successfully? - {ctgs.Update(newCategory)}");
+                        }
+                        else if (command[7] == 'b')
+                        {
+                            Brand brand = brands.GetById(id);
+                            Brand newBrand = SetBrand(brand);
+                            WriteLine($"Was order updated successfully? - {brands.Update(newBrand)}");
+                        }
+                        else if (command[7] == 'm')
+                        {
+                            Moderator mod = mods.GetById(id);
+                            Moderator newMod = FillMod();
+                            WriteLine($"Was user updated successfully? - {mods.Update(newMod)}");
+                        }
+                        else
+                        {
+                            WriteLine("Unknown command.");
+                        }
                     }
                     else
                     {
-                        WriteLine("Unknown command.");
+                        WriteLine("Id should be a number");
                     }
                 }
+                else if (command.Contains("search"))
+                {
+                    Write("Enter a search subline: ");
+                    string value = ReadLine();
+                    if (command.Contains("items"))
+                    {
+                        Stopwatch sw = new Stopwatch();
+                        sw.Start();
+                        ProcessSearchItems(value);
+                        sw.Stop();
+                    }
+                    else if (command.Contains("categories"))
+                    {
+                        Stopwatch sw = new Stopwatch();
+                        sw.Start();
+                        ProcessSearchCategories(value);
+                        sw.Stop();
+                    }
+                    else if (command.Contains("brands"))
+                    {
+                        Stopwatch sw = new Stopwatch();
+                        sw.Start();
+                        ProcessSearchBrands(value);
+                        sw.Stop();
+                    }
+                    else if (command.Contains("users"))
+                    {
+                        Stopwatch sw = new Stopwatch();
+                        sw.Start();
+                        ProcessSearchMods(value);
+                        sw.Stop();
+                    }
+                    else
+                    {
+                        Stopwatch sw = new Stopwatch();
+                        sw.Start();
+                        ProcessSearchItems(value);
+                        ProcessSearchBrands(value);
+                        ProcessSearchCategories(value);
+                        ProcessSearchMods(value);
+                        sw.Stop();
+                        WriteLine($"Elapsed time for all search is: {sw.Elapsed}");
+                    }
+                }
+                else if(command.Contains("predict"))
+                {
+                    string numVal = GetId(command, 8);
+                    int id;
+                    if (int.TryParse(numVal, out id))
+                    {
+                        try
+                        {
+                            Item item = items.GetById(id);
+                            WriteLine(item.ToString());
+                            ItemForPrediction newItem = prediction.ItemToItemForPrediction(item, ctgs, brands);
+                            MLContext mlContext = new MLContext(seed: 0);
+
+                            var model = prediction.Train(mlContext, @"C:\Database_Coursework\generation\items_prediction.csv");
+
+                            prediction.Evaluate(mlContext, model, @"C:\Database_Coursework\generation\items_prediction.csv");
+                            prediction.TestSinglePrediction(mlContext, model, newItem);
+                        }
+                        catch
+                        {
+                            WriteLine("Item id isn't correct");
+                        }
+                    }
+                }
+                else if (command == "exit" || command == "")
+                {
+                    WriteLine("Bye.");
+                    break;
+                }
                 else
                 {
-                    WriteLine("Id should be a number");
+                    WriteLine("Unknown command.");
                 }
-            }
-            else if (command.Contains("search"))
-            {
-                Write("Enter a search subline: ");
-                string value = ReadLine();
-                if (command.Contains("items"))
-                {
-                    Stopwatch sw = new Stopwatch();
-                    sw.Start();
-                    ProcessSearchItems(value);
-                    sw.Stop();
-                }
-                else if (command.Contains("categories"))
-                {
-                    Stopwatch sw = new Stopwatch();
-                    sw.Start();
-                    ProcessSearchCategories(value);
-                    sw.Stop();
-                }
-                else if (command.Contains("brands"))
-                {
-                    Stopwatch sw = new Stopwatch();
-                    sw.Start();
-                    ProcessSearchBrands(value);
-                    sw.Stop();
-                }
-                else if (command.Contains("users"))
-                {
-                    Stopwatch sw = new Stopwatch();
-                    sw.Start();
-                    ProcessSearchMods(value);
-                    sw.Stop();
-                }
-                else
-                {
-                    Stopwatch sw = new Stopwatch();
-                    sw.Start();
-                    ProcessSearchItems(value);
-                    ProcessSearchBrands(value);
-                    ProcessSearchCategories(value);
-                    ProcessSearchMods(value);
-                    sw.Stop();
-                    WriteLine($"Elapsed time for all search is: {sw.Elapsed}");
-                }
-            }
-            else if (command == "exit" || command == "")
-            {
-                WriteLine("Bye.");
-            }
-            else
-            {
-                WriteLine("Unknown command.");
             }
         }
         public Brand SetBrand(Brand brand)
@@ -292,7 +327,7 @@ namespace consoleApp
                 }
             }
             Write("Enter a password for new moderator: ");
-            mod.password = ReadLine();
+            string password = ReadLine();
             return mod;
         }
         public void ProcessLoginCommands()
@@ -303,27 +338,33 @@ namespace consoleApp
                 string command = ReadLine();
                 if (command.Contains("registrate"))
                 {
-                    if (command[1] == 'u')
-                    {
-                        Moderator mod = FillMod();
-                        int id = (int)mods.Insert(mod);
-                        WriteLine($"Id of new mod is: {id}");
-                        Moderator moderator = mods.GetById(id);
-                        WriteLine($"Welcome, new moderator: {moderator.name}");
-                    }
-                    else
-                    {
-                        WriteLine("Unknown command.");
-                    }
+                    Moderator mod = FillMod();
+                    int id = autentification.GetRegistration(mod, mod.password);
+                    WriteLine($"Id of new mod is: {id}");
+                    Moderator moderator = mods.GetById(id);
+                    WriteLine($"Welcome, new moderator: {moderator.name}");
+                    ProcessCommands();
                 }
                 else if (command.Contains("autentificate"))
                 {
-                    ProcessCommands();
-                    break;
+                    Write("Enter your name: ");
+                    string name = ReadLine();
+                    Write("Enter your password: ");
+                    string pasw = ReadLine();
+                    int checkAut = autentification.GetAutentification(name, pasw);
+                    if(checkAut != -1)
+                    {
+                        Moderator moderator = mods.GetById(checkAut);
+                        WriteLine($"Welcome, new moderator: {moderator.name}");
+                        ProcessCommands();
+                    }
+                    else
+                        WriteLine("We don't have such moderator, try again, please!");
                 }
                 else if (command == "exit" || command == "")
                 {
                     WriteLine("Bye.");
+                    break;
                 }
                 else
                 {
@@ -443,8 +484,15 @@ namespace consoleApp
         }
         public void ProcessGetItem(int id)
         {
+            try
+            {
                 Item item = items.GetById(id);
                 WriteLine(item.ToString());
+            }
+            catch
+            {
+                WriteLine("Item id isn't correct");
+            }
         }
         public void ProcessGetCategory(int id)
         {

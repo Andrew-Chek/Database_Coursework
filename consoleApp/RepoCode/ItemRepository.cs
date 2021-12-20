@@ -3,7 +3,7 @@ using static System.Console;
 using Npgsql;
 using System.Collections.Generic;
 
-namespace consoleApp
+namespace RepoCode
 {
     public class ItemRepository
     {
@@ -97,6 +97,28 @@ namespace consoleApp
             command.Parameters.AddWithValue("a", measures[0]);
             command.Parameters.AddWithValue("b", measures[1]);
             command.Parameters.AddWithValue("createYear", year);
+            NpgsqlDataReader reader = command.ExecuteReader();
+            List<Item> list = new List<Item>();
+            while(reader.Read())
+            {
+                Item item = new Item();
+                item.item_id = reader.GetInt32(0);
+                item.name = reader.GetString(1);
+                item.cost = reader.GetDouble(2);
+                item.brand_id = reader.GetInt32(3);
+                item.category_id = reader.GetInt32(4);
+                item.createYear = reader.GetInt32(5);
+                list.Add(item);
+            }
+            connection.Close();
+            return list;
+        }
+        public List<Item> GetAll()
+        {
+            AddingIndexes();
+            connection.Open();
+            NpgsqlCommand command = connection.CreateCommand();
+            command.CommandText = @"SELECT * FROM items";
             NpgsqlDataReader reader = command.ExecuteReader();
             List<Item> list = new List<Item>();
             while(reader.Read())

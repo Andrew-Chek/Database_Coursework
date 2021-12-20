@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Npgsql;
 
-namespace consoleApp
+namespace RepoCode
 {
     public class ModRepository
     {
@@ -63,6 +63,25 @@ namespace consoleApp
             long num = (long)command.ExecuteScalar();
             connection.Close();
             return num;
+        }
+        public Moderator GetByName(string name)
+        {
+            connection.Open();
+            NpgsqlCommand command = connection.CreateCommand();
+            command.CommandText = @"SELECT * FROM moderators WHERE name = @name";
+            command.Parameters.AddWithValue("name", name);
+            NpgsqlDataReader reader = command.ExecuteReader();
+            if (reader.Read())
+            {
+                Moderator mod = new Moderator();
+                mod.mod_id = reader.GetInt32(0);
+                mod.name = reader.GetString(1);
+                mod.password = reader.GetString(2);
+                connection.Close();
+                return mod;
+            }
+            else
+                throw new Exception("No moderator with such name");
         }
         public List<Moderator> GetAllSearch(string value)
         {

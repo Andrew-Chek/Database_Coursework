@@ -1,8 +1,9 @@
 using static System.Console;
-using consoleApp;
 using Npgsql;
 using System.Collections.Generic;
 using System.IO;
+using RepoCode;
+using PredictionLib;
 namespace generation
 {
     public class Generation
@@ -12,13 +13,15 @@ namespace generation
         public CategoryRepository categories;
         public BrandRepository brands;
         public ModRepository mods;
-        public Generation(string connString, ItemRepository items, CategoryRepository categories, BrandRepository brands, ModRepository mods)
+        public CostPrediction prediction;
+        public Generation(string connString, ItemRepository items, CategoryRepository categories, BrandRepository brands, ModRepository mods, CostPrediction prediction)
         {
             this.connection = new NpgsqlConnection(connString);
             this.items = items;
             this.categories = categories;
             this.brands = brands;
             this.mods = mods;
+            this.prediction = prediction;
         }
         public void GenerateItems(int num)
         {
@@ -32,6 +35,44 @@ namespace generation
                 Item item = new Item(names[i], costs[i], brand_ids[i], ctg_ids[i], createYears[i]);
                 items.Insert(item);
             }
+        }
+        public void GenerateCSVItems(int num)
+        {
+            string[] names = GenerateStrings(num);
+            string[] brands = GenerateStrings(num);
+            double[] costs = GenerateDoubles(num);
+            string[] ctgs = GenerateStrings(num);
+            int[] createYears = GenerateYears(num);
+            StreamWriter writer = new StreamWriter("./items_prediction.csv");
+            for (int i = 0; i < num; i++)
+            {
+                ItemForPrediction item = new ItemForPrediction(i, names[i], (float)costs[i], brands[i], ctgs[i], createYears[i]);
+                string item_value = item.ToString();
+                writer.Write(item_value);
+                if(i != num-1)
+                {
+                    writer.Write("\r\n");
+                }
+            }
+            writer.Close();
+        }
+        public void GetCSVItemsFromDB()
+        {
+            List<Item> allItems = items.GetAll();
+            Item[] itemArray = new Item[allItems.Count];
+            allItems.CopyTo(itemArray);
+            StreamWriter writer = new StreamWriter("./items_prediction.csv");
+            for (int i = 0; i < allItems.Count; i++)
+            {
+                ItemForPrediction item = prediction.ItemToItemForPrediction(itemArray[i], categories, brands);
+                string item_value = item.ToString();
+                writer.Write(item_value);
+                if(i != allItems.Count - 1)
+                {
+                    writer.Write("\r\n");
+                }
+            }
+            writer.Close();
         }
         public void GenerateModsDataset(int num)
         {
@@ -208,7 +249,7 @@ namespace generation
             NpgsqlDataReader reader = command.ExecuteReader();
             while (reader.Read())
             {
-                if (Validation.CheckUnique(mods.GetUniqueNamesCount(reader.GetString(0))) && strings.Count != num)
+                if (mods.GetUniqueNamesCount(reader.GetString(0)) != 0 && strings.Count != num)
                 {
                     strings.Add(reader.GetString(0));
                 }
@@ -232,7 +273,7 @@ namespace generation
             {
                 Write("Enter a cost of inserting item: ");
                 costVal = ReadLine();
-                if (Validation.CheckDouble(costVal))
+                if (double.TryParse(costVal, out item.cost))
                 {
                     item.cost = double.Parse(costVal);
                     break;
@@ -244,7 +285,7 @@ namespace generation
             }
             Write("Enter a name of category: ");
             string ctg = ReadLine();
-            if (!Validation.CheckUnique(categories.GetUniqueNamesCount(ctg)))
+            if (categories.GetUniqueNamesCount(ctg) != 0)
             {
                 item.category_id = categories.GetByName(ctg).category_id;
             }
@@ -255,7 +296,7 @@ namespace generation
             }
             Write("Enter a name of brand: ");
             string brand_name = ReadLine();
-            if (!Validation.CheckUnique(brands.GetUniqueNamesCount(brand_name)))
+            if (brands.GetUniqueNamesCount(brand_name) != 0)
             {
                 item.brand_id = brands.GetByName(brand_name).brand_id;
             }

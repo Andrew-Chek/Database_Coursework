@@ -2,59 +2,59 @@ using System;
 using static System.Console;
 using Npgsql;
 using System.Collections.Generic;
-namespace consoleApp
+namespace RepoCode
 {
-    public class CategoryRepository
+    public class BrandRepository
     {
         private NpgsqlConnection connection;
         private courseWorkdbContext context;
-        public CategoryRepository(string connString, courseWorkdbContext context)
+        public BrandRepository(string connString, courseWorkdbContext context)
         {
             this.connection = new NpgsqlConnection(connString);
             this.context = context;
         }
-        public Category GetById(int id)
+        public Brand GetById(int id)
         {
-            Category category = context.categories.Find(id);
-            if (category == null)
+            Brand brand = context.brands.Find(id);
+            if (brand == null)
             {
                 throw new NullReferenceException("Cannot find an object with such id.");
             }
             else
-                return category;
+                return brand;
         }
-        public Category GetByName(string name)
+        public Brand GetByName(string name)
         {
             connection.Open();
             NpgsqlCommand command = connection.CreateCommand();
-            command.CommandText = "SELECT * FROM categories WHERE category = @name";
+            command.CommandText = "SELECT * FROM brands WHERE brand = @name";
             command.Parameters.AddWithValue("name", name);
             NpgsqlDataReader reader = command.ExecuteReader();
-            if (reader.Read())
+            if(reader.Read())
             {
-                Category category = new Category();
-                category.category_id = reader.GetInt32(0);
-                category.category = reader.GetString(1);
+                Brand brand = new Brand();
+                brand.brand_id = reader.GetInt32(0);
+                brand.brand = reader.GetString(1);
                 connection.Close();
-                return category;
+                return brand;
             }
-            else
+            else 
             {
                 connection.Close();
-                throw new Exception("there are no categories with such name");
+                throw new Exception("there are no brands with such name");
             }
         }
         public bool DeleteById(int id)
         {
-            Category ctg = context.categories.Find(id);
-            if (ctg == null)
+            Brand brand = context.brands.Find(id);
+            if (brand == null)
             {
                 return false;
             }
             else
             {
-                context.categories.Remove(ctg);
-                Item[] items = FindItemsByCategory(ctg);
+                context.brands.Remove(brand);
+                Item[] items = FindItemsByBrand(brand);
                 for (int i = 0; i < items.Length; i++)
                 {
                     context.items.Remove(items[i]);
@@ -63,12 +63,12 @@ namespace consoleApp
                 return true;
             }
         }
-        public Item[] FindItemsByCategory(Category ctg)
+        public Item[] FindItemsByBrand(Brand brand)
         {
             connection.Open();
             NpgsqlCommand command = connection.CreateCommand();
-            command.CommandText = @"SELECT * FROM items WHERE category_id = @id";
-            command.Parameters.AddWithValue("id", ctg.category_id);
+            command.CommandText = @"SELECT * FROM items WHERE brand_id = @id";
+            command.Parameters.AddWithValue("id", brand.brand_id);
             NpgsqlDataReader reader = command.ExecuteReader();
             List<Item> list = new List<Item>();
             while (reader.Read())
@@ -86,45 +86,55 @@ namespace consoleApp
             list.CopyTo(array);
             return array;
         }
-        public object Insert(Category value)
+        public object Insert(Brand value)
         {
-            context.categories.Add(value);
+            context.brands.Add(value);
             context.SaveChanges();
-            return value.category_id;
+            return value.brand_id;
         }
-        public bool Update(Category category)
+        public bool Update(Brand value)
         {
             try
             {
-                Category ctgToUpdate = context.categories.Find(category.category_id);
-                if (ctgToUpdate == null)
+                Brand brandToUpdate = context.brands.Find(value.brand_id);
+                if (brandToUpdate == null)
                     return false;
                 else
-                    ctgToUpdate.category = category.category;
+                    brandToUpdate.brand = value.brand;
                 context.SaveChanges();
                 return true;
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
                 WriteLine(ex.Message);
                 return false;
             }
         }
-        public List<Category> GetAllSearch(string value)
+        public long GetUniqueNamesCount(string name)
+        {
+            connection.Open();
+            NpgsqlCommand command = connection.CreateCommand();
+            command.CommandText = @"SELECT COUNT(*) FROM brands WHERE brand = @name";
+            command.Parameters.AddWithValue("name", name);
+            long num = (long)command.ExecuteScalar();
+            connection.Close();
+            return num;
+        }
+        public List<Brand> GetAllSearch(string value)
         {
             AddingIndexes();
             connection.Open();
             NpgsqlCommand command = connection.CreateCommand();
-            command.CommandText = @"SELECT * FROM categories WHERE category LIKE '%' || @value || '%'";
+            command.CommandText = @"SELECT * FROM brands WHERE brand LIKE '%' || @value || '%'";
             command.Parameters.AddWithValue("value", value);
             NpgsqlDataReader reader = command.ExecuteReader();
-            List<Category> list = new List<Category>();
-            while (reader.Read())
+            List<Brand> list = new List<Brand>();
+            while(reader.Read())
             {
-                Category category = new Category();
-                category.category_id = reader.GetInt32(0);
-                category.category = reader.GetString(1);
-                list.Add(category);
+                Brand brand = new Brand();
+                brand.brand_id = reader.GetInt32(0);
+                brand.brand = reader.GetString(1);
+                list.Add(brand);
             }
             connection.Close();
             return list;
@@ -134,32 +144,22 @@ namespace consoleApp
             AddingIndexes();
             connection.Open();
             NpgsqlCommand command = connection.CreateCommand();
-            command.CommandText = @"SELECT * FROM categories";
+            command.CommandText = @"SELECT * FROM brands";
             NpgsqlDataReader reader = command.ExecuteReader();
             List<string> list = new List<string>();
-            while (reader.Read())
+            while(reader.Read())
             {
                 list.Add(reader.GetString(1));
             }
             connection.Close();
             return list;
         }
-        public long GetUniqueNamesCount(string name)
-        {
-            connection.Open();
-            NpgsqlCommand command = connection.CreateCommand();
-            command.CommandText = @"SELECT COUNT(*) FROM categories WHERE category = @name";
-            command.Parameters.AddWithValue("name", name);
-            long num = (long)command.ExecuteScalar();
-            connection.Close();
-            return num;
-        }
         private void AddingIndexes()
         {
             connection.Open();
             NpgsqlCommand command = connection.CreateCommand();
             command.CommandText = @"
-                CREATE INDEX if not exists categories_name_idx ON categories using GIN (category);
+                CREATE INDEX if not exists brands_name_idx ON brands using GIN (brand);
             ";
             int nChanged = command.ExecuteNonQuery();
             connection.Close();

@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-namespace consoleApp
+namespace RepoCode
 {
     public partial class courseWorkdbContext : DbContext
     {

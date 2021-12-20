@@ -1,5 +1,5 @@
 using static System.Console;
-using consoleApp;
+using RepoCode;
 namespace generation
 {
     public class ConsoleLog
@@ -29,38 +29,49 @@ namespace generation
                 }
                 else if (command.Contains("generate"))
                 {
-                    int num;
-                    while (true)
+                    if(command.Contains("csv db"))
                     {
-                        Write("Enter a num of generated values: ");
-                        string value = ReadLine();
-                        if (Validation.CheckInteger(value) && int.Parse(value) > 0)
+                        generation.GetCSVItemsFromDB();
+                    }
+                    else
+                    {
+                        int num;
+                        while (true)
                         {
-                            num = int.Parse(value);
-                            break;
+                            Write("Enter a num of generated values: ");
+                            string value = ReadLine();
+                            if (int.TryParse(value, out int numq) && int.Parse(value) > 0)
+                            {
+                                num = int.Parse(value);
+                                break;
+                            }
+                            else
+                            {
+                                WriteLine("Number wasn`t correct, please enter again!");
+                            }
                         }
-                        else
+                        if(command.Contains("csv"))
                         {
-                            WriteLine("Number wasn`t correct, please enter again!");
+                            generation.GenerateCSVItems(num);
                         }
-                    }
-                    if(command.Contains("all"))
-                    {
-                        generation.GenerateItems(num);
-                        generation.GenerateMods(num);
-                    }
-                    else if(command.Contains("items"))
-                    {
-                        generation.GenerateItems(num);
-                    }
-                    else if(command.Contains("mods"))
-                    {
-                        generation.GenerateMods(num);
-                    }
-                    else if(command.Contains("dataset"))
-                    {
-                        generation.GenerateModsDataset(num);
-                        generation.GenerateItemsDataset(num);
+                        if(command.Contains("all"))
+                        {
+                            generation.GenerateItems(num);
+                            generation.GenerateMods(num);
+                        }
+                        else if(command.Contains("items"))
+                        {
+                            generation.GenerateItems(num);
+                        }
+                        else if(command.Contains("mods"))
+                        {
+                            generation.GenerateMods(num);
+                        }
+                        else if(command.Contains("dataset"))
+                        {
+                            generation.GenerateModsDataset(num);
+                            generation.GenerateItemsDataset(num);
+                        }
                     }
                 }
                 else if (command == "exit" || command == "")

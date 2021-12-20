@@ -1,5 +1,6 @@
 ﻿using System;
-using consoleApp;
+using RepoCode;
+using PredictionLib;
 namespace generation
 {
     class Program
@@ -12,7 +13,8 @@ namespace generation
             BrandRepository brands = new BrandRepository(connString, context);
             ItemRepository items = new ItemRepository(connString, context);
             ModRepository mods = new ModRepository(connString, context);
-            Generation generation = new Generation(connString, items, ctgs, brands, mods);
+            CostPrediction prediction = new CostPrediction();
+            Generation generation = new Generation(connString, items, ctgs, brands, mods, prediction);
             ConsoleLog console = new ConsoleLog(generation);
             console.ProcessCommands();
         }

@@ -1,4 +1,4 @@
-namespace consoleApp
+namespace RepoCode
 {
     public class Item
     {
