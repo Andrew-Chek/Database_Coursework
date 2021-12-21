@@ -16,15 +16,72 @@ namespace RepoCode
         public virtual DbSet<Category> categories { get; set; }
         public virtual DbSet<Item> items { get; set; }
         public virtual DbSet<Moderator> moderators { get; set; }
-
+        public string connectionString { get; set; }
+        public courseWorkdbContext(string connectionString)
+        {
+            this.connectionString = connectionString;
+            Database.EnsureCreated();
+        }
+        public void CreateSubscription()
+        {
+            var result = -1;
+            using (var command = this.Database.GetDbConnection().CreateCommand())
+            {
+                command.CommandText = "SELECT COUNT(*) FROM pg_subscription";
+                this.Database.OpenConnection();
+                using (var reader = command.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        result = reader.GetInt32(0);
+                    }
+                }
+                this.Database.CloseConnection();
+            }
+            if (result == 0)
+            {
+                this.Database.ExecuteSqlRaw("CREATE SUBSCRIPTION logical_sub\n" +
+                "CONNECTION 'host=localhost port=5432 user=postgres password=2003Lipovetc dbname=courseWorkdb'\n" +
+                "PUBLICATION logical_pub\n" +
+                "WITH(create_slot = false, slot_name = 'logical_slot');");
+            }
+        }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseNpgsql("Host=localhost;Port=5432;Database=courseWorkdb;Username=postgres;Password=2003Lipovetc");
+                optionsBuilder.UseNpgsql(connectionString);
             }
         }
+        public void CheckPublication()
+        {
+            var result = -1;
+            using (var command = this.Database.GetDbConnection().CreateCommand())
+            {
+                command.CommandText = "SELECT COUNT(*) FROM pg_publication";
+                this.Database.OpenConnection();
+                using (var reader = command.ExecuteReader())
+                    if (reader.Read())
+                        result = reader.GetInt32(0);
+                this.Database.CloseConnection();
+            }
 
+            if (result == 0)
+                this.Database.ExecuteSqlRaw("CREATE PUBLICATION logical_pub FOR ALL TABLES;");
+
+            using (var command = this.Database.GetDbConnection().CreateCommand())
+            {
+                command.CommandText = "SELECT COUNT(*) FROM pg_replication_slots";
+                this.Database.OpenConnection();
+                using (var reader = command.ExecuteReader())
+                    if (reader.Read())
+                        result = reader.GetInt32(0);
+                this.Database.CloseConnection();
+            }
+
+            if (result == 0)
+                this.Database.ExecuteSqlRaw("SELECT * FROM pg_create_logical_replication_slot('logical_slot', 'pgoutput');");
+        }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Brand>(entity =>
