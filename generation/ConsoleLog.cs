@@ -50,10 +50,6 @@ namespace generation
                                 WriteLine("Number wasn`t correct, please enter again!");
                             }
                         }
-                        if(command.Contains("csv"))
-                        {
-                            generation.GenerateCSVItems(num);
-                        }
                         if(command.Contains("all"))
                         {
                             generation.GenerateItems(num);

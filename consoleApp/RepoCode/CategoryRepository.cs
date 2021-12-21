@@ -112,7 +112,6 @@ namespace RepoCode
         }
         public List<Category> GetAllSearch(string value)
         {
-            AddingIndexes();
             connection.Open();
             NpgsqlCommand command = connection.CreateCommand();
             command.CommandText = @"SELECT * FROM categories WHERE category LIKE '%' || @value || '%'";
@@ -154,13 +153,21 @@ namespace RepoCode
             connection.Close();
             return num;
         }
-        private void AddingIndexes()
+        public void AddingIndexes()
         {
             connection.Open();
             NpgsqlCommand command = connection.CreateCommand();
             command.CommandText = @"
                 CREATE INDEX if not exists categories_name_idx ON categories using GIN (category);
             ";
+            int nChanged = command.ExecuteNonQuery();
+            connection.Close();
+        }
+        public void DroppingIndexes()
+        {
+            connection.Open();
+            NpgsqlCommand command = connection.CreateCommand();
+            command.CommandText = @"DROP INDEX if exists categories_name_idx;";
             int nChanged = command.ExecuteNonQuery();
             connection.Close();
         }

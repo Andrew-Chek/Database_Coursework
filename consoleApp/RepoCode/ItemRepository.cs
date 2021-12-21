@@ -1,7 +1,6 @@
 using System;
 using static System.Console;
 using Npgsql;
-using System.Collections.Generic;
 
 namespace RepoCode
 {
@@ -86,17 +85,82 @@ namespace RepoCode
                 return false;
             }
         }
-        public List<Item> GetAllSearch(string value, int[] measures, int year)
+        public Item GetMinValue()
         {
-            AddingIndexes();
+            connection.Open();
+            NpgsqlCommand command = connection.CreateCommand();
+            command.CommandText = @"SELECT MIN(cost) FROM items";
+            double minValue = (double)command.ExecuteScalar();
+            NpgsqlCommand command1 = connection.CreateCommand();
+            command1.CommandText = @"SELECT * FROM items WHERE cost <= @minValue";
+            command1.Parameters.AddWithValue("minValue", minValue);
+            NpgsqlDataReader reader = command1.ExecuteReader();
+            Item item = new Item();
+            if(reader.Read())
+            {
+                item.item_id = reader.GetInt32(0);
+                item.name = reader.GetString(1);
+                item.cost = reader.GetDouble(2);
+                item.brand_id = reader.GetInt32(3);
+                item.category_id = reader.GetInt32(4);
+                item.createYear = reader.GetInt32(5);
+            }
+            connection.Close();
+            return item;
+        }
+        public Item GetMaxValue()
+        {
+            connection.Open();
+            NpgsqlCommand command = connection.CreateCommand();
+            command.CommandText = @"SELECT MAX(cost) FROM items";
+            double maxValue = (double)command.ExecuteScalar();
+            NpgsqlCommand command1 = connection.CreateCommand();
+            command1.CommandText = @"SELECT * FROM items WHERE cost >= @maxValue";
+            command1.Parameters.AddWithValue("maxValue", maxValue);
+            NpgsqlDataReader reader = command1.ExecuteReader();
+            Item item = new Item();
+            if(reader.Read())
+            {
+                item.item_id = reader.GetInt32(0);
+                item.name = reader.GetString(1);
+                item.cost = reader.GetDouble(2);
+                item.brand_id = reader.GetInt32(3);
+                item.category_id = reader.GetInt32(4);
+                item.createYear = reader.GetInt32(5);
+            }
+            connection.Close();
+            return item;
+        }
+        public double[] GetItemCosts()
+        {
+            double[] values = new double[GetCount()];
+            List<Item> items = GetAll();
+            Item[] array = new Item[items.Count];
+            items.CopyTo(array);
+            for(int i = 0; i < array.Length; i++)
+            {
+                values[i] = array[i].cost;
+            }
+            return values;
+        }
+        public long GetCount()
+        {
+            connection.Open();
+            NpgsqlCommand command = connection.CreateCommand();
+            command.CommandText = @"SELECT COUNT(*) FROM items";
+            long count = (long)command.ExecuteScalar();
+            connection.Close();
+            return count;
+        }
+        public List<Item> GetAllSearch(string value, int[] measures)
+        {
             connection.Open();
             NpgsqlCommand command = connection.CreateCommand();
             command.CommandText = @"SELECT * FROM items WHERE name LIKE '%' || @value || '%' 
-                or cost BETWEEN @a AND @b or createYear = @createYear";
+                or cost >= @a AND cost <= @b";
             command.Parameters.AddWithValue("value", value);
             command.Parameters.AddWithValue("a", measures[0]);
             command.Parameters.AddWithValue("b", measures[1]);
-            command.Parameters.AddWithValue("createYear", year);
             NpgsqlDataReader reader = command.ExecuteReader();
             List<Item> list = new List<Item>();
             while(reader.Read())
@@ -115,7 +179,6 @@ namespace RepoCode
         }
         public List<Item> GetAll()
         {
-            AddingIndexes();
             connection.Open();
             NpgsqlCommand command = connection.CreateCommand();
             command.CommandText = @"SELECT * FROM items";
@@ -135,13 +198,24 @@ namespace RepoCode
             connection.Close();
             return list;
         }
-        private void AddingIndexes()
+        public void AddingIndexes()
         {
             connection.Open();
             NpgsqlCommand command = connection.CreateCommand();
             command.CommandText = @"
                 CREATE INDEX if not exists items_cost_idx ON items (cost);
                 CREATE INDEX if not exists items_name_idx ON items using GIN (name);
+            ";
+            int nChanged = command.ExecuteNonQuery();
+            connection.Close();
+        }
+        public void DroppingIndexes()
+        {
+            connection.Open();
+            NpgsqlCommand command = connection.CreateCommand();
+            command.CommandText = @"
+                DROP INDEX if exists items_cost_idx;
+                DROP INDEX if exists items_name_idx;
             ";
             int nChanged = command.ExecuteNonQuery();
             connection.Close();

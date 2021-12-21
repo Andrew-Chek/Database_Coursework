@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using Microsoft.ML;
-using System.Data.SqlClient;
 using RepoCode;
 using PredictionLib;
+//pg_dump -U postgres -d courseWorkdb -f C:/Database_Coursework/consoleApp/data/postgre.dump
+//psql -U postgres -d restored_db -f C:/Database_Coursework/consoleApp/data/postgre.dump
 namespace consoleApp
 {
     class Program

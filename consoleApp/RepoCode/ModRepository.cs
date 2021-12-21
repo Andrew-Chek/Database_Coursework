@@ -85,7 +85,6 @@ namespace RepoCode
         }
         public List<Moderator> GetAllSearch(string value)
         {
-            AddingIndexes();
             connection.Open();
             NpgsqlCommand command = connection.CreateCommand();
             command.CommandText = @"SELECT * FROM moderators WHERE name LIKE '%' || @value || '%' 
@@ -118,13 +117,24 @@ namespace RepoCode
             connection.Close();
             return list;
         }
-        private void AddingIndexes()
+        public void AddingIndexes()
         {
             connection.Open();
             NpgsqlCommand command = connection.CreateCommand();
             command.CommandText = @"
                 CREATE INDEX if not exists mods_name_idx ON moderators using GIN (name);
                 CREATE INDEX if not exists mods_psw_idx ON moderators using GIN (password);
+            ";
+            int nChanged = command.ExecuteNonQuery();
+            connection.Close();
+        }
+        public void DroppingIndexes()
+        {
+            connection.Open();
+            NpgsqlCommand command = connection.CreateCommand();
+            command.CommandText = @"
+                DROP INDEX if exists mods_name_idx;
+                DROP INDEX if exists mods_psw_idx;
             ";
             int nChanged = command.ExecuteNonQuery();
             connection.Close();

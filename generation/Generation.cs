@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.IO;
 using RepoCode;
 using PredictionLib;
+using System;
+
 namespace generation
 {
     public class Generation
@@ -23,6 +25,10 @@ namespace generation
             this.mods = mods;
             this.prediction = prediction;
         }
+        public Generation(string connString)
+        {
+            this.connection = new NpgsqlConnection(connString);
+        }
         public void GenerateItems(int num)
         {
             string[] names = GenerateStrings(num);
@@ -36,17 +42,15 @@ namespace generation
                 items.Insert(item);
             }
         }
-        public void GenerateCSVItems(int num)
+        public void GenerateCSVItems(int num, string category, string brand, double cost)
         {
             string[] names = GenerateStrings(num);
-            string[] brands = GenerateStrings(num);
-            double[] costs = GenerateDoubles(num);
-            string[] ctgs = GenerateStrings(num);
+            double[] costs = GenerateDoubles1(num, cost);
             int[] createYears = GenerateYears(num);
-            StreamWriter writer = new StreamWriter("./items_prediction.csv");
+            StreamWriter writer = new StreamWriter(@"C:\Database_Coursework\generation\items_prediction.csv");
             for (int i = 0; i < num; i++)
             {
-                ItemForPrediction item = new ItemForPrediction(i, names[i], (float)costs[i], brands[i], ctgs[i], createYears[i]);
+                ItemForPrediction item = new ItemForPrediction(i, names[i], (float)costs[i], brand, category, createYears[i]);
                 string item_value = item.ToString();
                 writer.Write(item_value);
                 if(i != num-1)
@@ -318,6 +322,47 @@ namespace generation
             while (reader1.Read())
             {
                 doubles.Add(reader1.GetInt32(0));
+            }
+            connection.Close();
+            double[] doubRepo = new double[doubles.Count];
+            doubles.CopyTo(doubRepo);
+            return doubRepo;
+        }
+        public double[] GenerateDoubles1(int num, double cost)
+        {
+            List<double> doubles = new List<double>();
+            double start = 0;
+            double end = 0;
+            if(cost < 700)
+            {
+                start = 20;
+                end = start + 500;
+            }
+            else if(cost < 3000)
+            {
+                start = 1000;
+                end = start + 1500;
+            }
+            else if(cost < 15000)
+            {
+                start = 5000;
+                end = start * 2;
+            }
+            else
+            {
+                start = 30000;
+                end = start * 2;
+            }
+            connection.Open();
+            NpgsqlCommand command1 = connection.CreateCommand();
+            command1.CommandText = "select trunc(random()* (@start-@end + 1) + @start)::int from generate_series(1,@num);";
+            command1.Parameters.AddWithValue("num", num);
+            command1.Parameters.AddWithValue("start", start);
+            command1.Parameters.AddWithValue("end", end);
+            NpgsqlDataReader reader1 = command1.ExecuteReader();
+            while (reader1.Read())
+            {
+                doubles.Add(System.Math.Abs(reader1.GetInt32(0)));
             }
             connection.Close();
             double[] doubRepo = new double[doubles.Count];

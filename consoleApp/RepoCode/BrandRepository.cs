@@ -122,7 +122,6 @@ namespace RepoCode
         }
         public List<Brand> GetAllSearch(string value)
         {
-            AddingIndexes();
             connection.Open();
             NpgsqlCommand command = connection.CreateCommand();
             command.CommandText = @"SELECT * FROM brands WHERE brand LIKE '%' || @value || '%'";
@@ -154,13 +153,21 @@ namespace RepoCode
             connection.Close();
             return list;
         }
-        private void AddingIndexes()
+        public void AddingIndexes()
         {
             connection.Open();
             NpgsqlCommand command = connection.CreateCommand();
             command.CommandText = @"
                 CREATE INDEX if not exists brands_name_idx ON brands using GIN (brand);
             ";
+            int nChanged = command.ExecuteNonQuery();
+            connection.Close();
+        }
+        public void DroppingIndexes()
+        {
+            connection.Open();
+            NpgsqlCommand command = connection.CreateCommand();
+            command.CommandText = @"DROP INDEX if exists brands_name_idx;";
             int nChanged = command.ExecuteNonQuery();
             connection.Close();
         }

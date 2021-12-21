@@ -3,6 +3,7 @@ using System.Diagnostics;
 using Microsoft.ML;
 using RepoCode;
 using PredictionLib;
+using generation;
 namespace consoleApp
 {
     public class ConsoleLog
@@ -13,6 +14,8 @@ namespace consoleApp
         private ModRepository mods;
         private CostPrediction prediction;
         private Autentification autentification;
+        private Generation generation = new Generation("Host=localhost;Port=5432;Database=courseWorkdb;Username=postgres;Password=2003Lipovetc");
+
         public ConsoleLog(ItemRepository items, CategoryRepository ctgs, BrandRepository brands, ModRepository mods, CostPrediction prediction, Autentification autentification)
         {
             this.items = items;
@@ -50,6 +53,10 @@ namespace consoleApp
         }
         public void ProcessCommands()
         {
+            mods.DroppingIndexes();
+            items.DroppingIndexes();
+            ctgs.DroppingIndexes();
+            brands.DroppingIndexes();
             while(true)
             {
                 Write("Enter a command: ");
@@ -184,7 +191,7 @@ namespace consoleApp
                         ProcessSearchBrands(value);
                         sw.Stop();
                     }
-                    else if (command.Contains("users"))
+                    else if (command.Contains("mods"))
                     {
                         Stopwatch sw = new Stopwatch();
                         sw.Start();
@@ -202,6 +209,10 @@ namespace consoleApp
                         sw.Stop();
                         WriteLine($"Elapsed time for all search is: {sw.Elapsed}");
                     }
+                    mods.AddingIndexes();
+                    items.AddingIndexes();
+                    ctgs.AddingIndexes();
+                    brands.AddingIndexes();
                 }
                 else if(command.Contains("predict"))
                 {
@@ -214,6 +225,7 @@ namespace consoleApp
                             Item item = items.GetById(id);
                             WriteLine(item.ToString());
                             ItemForPrediction newItem = prediction.ItemToItemForPrediction(item, ctgs, brands);
+                            generation.GenerateCSVItems(100000, newItem.category, newItem.brand, newItem.cost);
                             MLContext mlContext = new MLContext(seed: 0);
 
                             var model = prediction.Train(mlContext, @"C:\Database_Coursework\generation\items_prediction.csv");
@@ -226,6 +238,13 @@ namespace consoleApp
                             WriteLine("Item id isn't correct");
                         }
                     }
+                }
+                else if(command.Contains("generate docx"))
+                {
+                    ImageGenerator generator = new ImageGenerator("./data/image.png", items);
+                    generator.GenerateImage();
+                    GatherInfo info = new GatherInfo(items);
+                    info.Main();
                 }
                 else if (command == "exit" || command == "")
                 {
@@ -409,25 +428,10 @@ namespace consoleApp
                     WriteLine("Wrong measures, please enter again!");
                 }
             }
-            int year = 0;
-            while (true)
-            {
-                Write("Enter year of creation for item: ");
-                string yearName = ReadLine();
-                if (int.TryParse(yearName, out year) && int.Parse(yearName) > 1980 && int.Parse(yearName) < 2022)
-                {
-                    year = int.Parse(yearName);
-                    break;
-                }
-                else
-                {
-                    WriteLine("Wrong year, please enter again!");
-                }
-            }
             Stopwatch sw = new Stopwatch();
             sw.Start();
             Write("Serch Items: ");
-            List<Item> searchIts = items.GetAllSearch(value, measures1, year);
+            List<Item> searchIts = items.GetAllSearch(value, measures1);
             Item[] itArr = new Item[searchIts.Count];
             searchIts.CopyTo(itArr);
             if (itArr.Length == 0)
