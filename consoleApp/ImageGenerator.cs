@@ -44,5 +44,32 @@ namespace consoleApp
 
             plt.SaveFig(filePath);
         }
+        public void GenerateGraphic(double num1, double num2)
+        {
+            var plt = new ScottPlot.Plot(600, 400);
+
+            // generate random data to plot
+            int groupCount = 1;
+            Random rand = new(0);
+            double[] values1 = new double[]{num1};
+            double[] values2 = new double[]{num2};
+            double[] errors1 = new double[]{0};
+            double[] errors2 = new double[]{0};
+
+            // group all data together
+            string[] groupNames = {"Indexes usage plot"};
+            string[] seriesNames = { "Without indexes", "With indexes"};
+            double[][] valuesBySeries = { values1, values2};
+            double[][] errorsBySeries = { errors1, errors2};
+
+            // add the grouped bar plots and show a legend
+            plt.AddBarGroups(groupNames, seriesNames, valuesBySeries, errorsBySeries);
+            plt.Legend(location: Alignment.UpperRight);
+
+            // adjust axis limits so there is no padding below the bar graph
+            plt.SetAxisLimits(yMin: 0);
+
+            plt.SaveFig(this.filePath);
+        }
     }
 }

@@ -57,6 +57,10 @@ namespace consoleApp
             items.DroppingIndexes();
             ctgs.DroppingIndexes();
             brands.DroppingIndexes();
+            bool indexCheck = false;
+            double num1 = 0;
+            double num2 = 0;
+            WriteLine("Now program without indexes");
             while(true)
             {
                 Write("Enter a command: ");
@@ -176,6 +180,12 @@ namespace consoleApp
                         sw.Start();
                         ProcessSearchItems(value);
                         sw.Stop();
+                        if(indexCheck)
+                        {
+                            num1 = sw.ElapsedMilliseconds;
+                        }
+                        else
+                            num2 = sw.ElapsedMilliseconds;
                     }
                     else if (command.Contains("categories"))
                     {
@@ -183,6 +193,12 @@ namespace consoleApp
                         sw.Start();
                         ProcessSearchCategories(value);
                         sw.Stop();
+                        if(!indexCheck)
+                        {
+                            num1 = sw.ElapsedMilliseconds;
+                        }
+                        else
+                            num2 = sw.ElapsedMilliseconds;
                     }
                     else if (command.Contains("brands"))
                     {
@@ -190,6 +206,12 @@ namespace consoleApp
                         sw.Start();
                         ProcessSearchBrands(value);
                         sw.Stop();
+                        if(!indexCheck)
+                        {
+                            num1 = sw.ElapsedMilliseconds;
+                        }
+                        else
+                            num2 = sw.ElapsedMilliseconds;
                     }
                     else if (command.Contains("mods"))
                     {
@@ -197,6 +219,12 @@ namespace consoleApp
                         sw.Start();
                         ProcessSearchMods(value);
                         sw.Stop();
+                        if(!indexCheck)
+                        {
+                            num1 = sw.ElapsedMilliseconds;
+                        }
+                        else
+                            num2 = sw.ElapsedMilliseconds;
                     }
                     else
                     {
@@ -208,11 +236,32 @@ namespace consoleApp
                         ProcessSearchMods(value);
                         sw.Stop();
                         WriteLine($"Elapsed time for all search is: {sw.Elapsed}");
+                        if(!indexCheck)
+                        {
+                            num1 = sw.ElapsedMilliseconds;
+                        }
+                        else
+                            num2 = sw.ElapsedMilliseconds;
                     }
-                    mods.AddingIndexes();
-                    items.AddingIndexes();
-                    ctgs.AddingIndexes();
-                    brands.AddingIndexes();
+                    if(!indexCheck)
+                    {
+                        mods.AddingIndexes();
+                        items.AddingIndexes();
+                        ctgs.AddingIndexes();
+                        brands.AddingIndexes();
+                        indexCheck = true;
+                        WriteLine("Adding indexes");
+                    }
+                }
+                else if(command.Contains("generate plot"))
+                {
+                    ImageGenerator generator = new ImageGenerator("./data/plot.jpg", items);
+                    if(num1 == 0 || num2 == 0)
+                    {
+                        WriteLine("Search wasn`t done to generate a plot");
+                    }
+                    else
+                        generator.GenerateGraphic(num1, num2);
                 }
                 else if(command.Contains("predict"))
                 {
@@ -364,7 +413,7 @@ namespace consoleApp
                     WriteLine($"Welcome, new moderator: {moderator.name}");
                     ProcessCommands();
                 }
-                else if (command.Contains("autentificate"))
+                else if (command.Contains("authentificate"))
                 {
                     Write("Enter your name: ");
                     string name = ReadLine();
@@ -374,7 +423,7 @@ namespace consoleApp
                     if(checkAut != -1)
                     {
                         Moderator moderator = mods.GetById(checkAut);
-                        WriteLine($"Welcome, new moderator: {moderator.name}");
+                        WriteLine($"Welcome, moderator: {moderator.name}");
                         ProcessCommands();
                     }
                     else
